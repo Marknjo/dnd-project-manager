@@ -3,11 +3,28 @@
 
 /// FIXME: IMPLEMENTATION -> remove this line
 
-interface ProjectInputValues {
-  title: string;
-  description: string;
-  people: number;
-}
+/**
+ * Automatically binds the method with this
+ * @param _ Target Prototype
+ * @param _2 Method name
+ * @param descriptor Property descriptor of the method implementing the class
+ * @returns Property descriptor
+ */
+const Autobind = function (_: any, _2: string, descriptor: PropertyDescriptor) {
+  // Get the descriptor value
+  const originalMethod = descriptor.value;
+
+  // Assign bind using get
+  const adjustedDescriptor: PropertyDescriptor = {
+    configurable: true,
+    get() {
+      return originalMethod.bind(this);
+    },
+  };
+
+  // return adjusted Descriptor
+  return adjustedDescriptor;
+};
 
 /**
  * Project input Class -> Responsible for rendering project adding form
@@ -111,6 +128,7 @@ class ProjectInputs {
    * Handles form submission Event
    * @param {Event} event Event handler
    */
+  @Autobind
   private handleFormSubmit(event: Event) {
     // Prevent default
     event.preventDefault();
@@ -140,8 +158,7 @@ class ProjectInputs {
    */
   private addEffects() {
     /// Event listener handling form submission
-    // TODO: Implement @Autobind decorator
-    document.addEventListener('submit', this.handleFormSubmit.bind(this));
+    document.addEventListener('submit', this.handleFormSubmit);
   }
 }
 
