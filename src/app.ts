@@ -3,11 +3,28 @@
 
 /// FIXME: IMPLEMENTATION -> remove this line
 
+/**
+ * Project input Class -> Responsible for rendering project adding form
+ */
 class ProjectInputs {
+  /**
+   * @param {HTMLTemplateElement} templateEl Gets the template holding the form element
+   */
   templateEl: HTMLTemplateElement;
+
+  /**
+   * @param {HTMLDivElement} appRootEl App root container
+   */
   appRootEl: HTMLDivElement;
+
+  /**
+   * @param {HTMLFormElement} domEl stores/holds the form element
+   */
   domEl: HTMLFormElement;
 
+  /**
+   * Initializes project inputs on login
+   */
   constructor() {
     /// Get template on class initialization
     this.templateEl = document.getElementById(
@@ -28,6 +45,9 @@ class ProjectInputs {
     this.render();
   }
 
+  /**
+   * Renders DOM element to the UI
+   */
   private render() {
     this.appRootEl.insertAdjacentElement('afterbegin', this.domEl);
   }
