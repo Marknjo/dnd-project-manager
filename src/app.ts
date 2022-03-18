@@ -27,6 +27,221 @@ const Autobind = function (_: any, _2: string, descriptor: PropertyDescriptor) {
 };
 
 /**
+ * A guard to allow a number field to be either 0 or non-zero
+ * @argument 'Allow' | 'Disallow' zeros for numerical fields
+ */
+enum AllowZero {
+  'Allow',
+  'Disallow',
+}
+
+/**
+ * An interface enforcinng all fields an input can use to validate
+ * @param value The actual value submitted by the input form
+ * @param fieldName The name of the input form field
+ * @param required  Enforces a field must be present
+ * @param maxLength Enforces maximum characters allowable for string values
+ * @param minLength Enforces a maxLength value for string values
+ * @param max Enforces a max value for a numeric input field
+ * @param min Enforces a min value for a numeric input field
+ * @param allowZero Declares if an input field allows a zero as input or not -> Type AllowZero ("Allow | Disallow")
+ * @param trim trims an input field
+ * @param customMessage Sets a custom message for a field
+ */
+interface Validatable {
+  value: string | number;
+  fieldName: string;
+  customMessage?: string;
+  required?: boolean;
+  maxLength?: number;
+  minLength?: number;
+  trim?: boolean;
+  max?: number;
+  min?: number;
+  allowZero?: AllowZero;
+}
+
+/**
+ * Enforces return types for a validation message response
+ * @param validationStatus Either a true or false
+ * @param validationType One of the fields Validatable interface implements i.e. required, value e.t.c
+ * @param fieldName The field name of the input form validations are run
+ * @param fieldValue Actual value user submitted
+ * @param message A custom field carrying the validation error message
+ */
+interface Messagable {
+  validationStatus: boolean;
+  validationType: string;
+  fieldName: string;
+  fieldValue: string | number;
+  message: string;
+}
+
+/**
+ * Validate Input fields
+ * @param validateOptions Type Validatable parameters
+ * @returns an empty array or validation configuration of type Messagable
+ */
+const validate = function (validateOptions: Validatable): Messagable[] {
+  // Initialize validator
+
+  const {
+    value,
+    fieldName,
+    customMessage,
+    required,
+    maxLength,
+    minLength,
+    max,
+    min,
+    trim,
+    allowZero,
+  } = validateOptions;
+
+  /// Messaging bug
+  const validationBug: Messagable[] = [];
+
+  /**
+   * Pushes error messages to validation bug
+   * @param messageFields Implements messagable interface
+   */
+  const manageValidationBug = (messageFields: Messagable) => {
+    const { validationStatus, validationType, fieldName, fieldValue, message } =
+      messageFields;
+
+    const validationStatusConstruct: Messagable = {
+      validationStatus,
+      validationType,
+      fieldName,
+      fieldValue,
+      message,
+    };
+
+    validationBug.push(validationStatusConstruct);
+  };
+
+  let trimmedValue = '';
+
+  /// Validations logic
+
+  /**
+   * Capitalize first letter
+   * @param str A string of any types
+   * @returns A capitalized string
+   */
+  const capitalizeStr = (str: string) => {
+    return `${str.charAt(0).toLocaleUpperCase()}${str
+      .slice(1)
+      .toLocaleLowerCase()}`;
+  };
+
+  // Trim a value ony if it is a string
+  if (trim && typeof value === 'string') trimmedValue = value.toString();
+
+  /// Check required
+  if (required) {
+    const isValid =
+      allowZero && allowZero === AllowZero.Disallow && typeof value === 'number'
+        ? value.toString().trim().length !== 0 && value !== 0
+        : value.toString().trim().length !== 0;
+
+    if (!isValid) {
+      const message = customMessage
+        ? customMessage
+        : `${capitalizeStr(fieldName)} input field has no value.`;
+
+      manageValidationBug({
+        validationStatus: isValid,
+        validationType: 'required',
+        fieldName: `${fieldName}`,
+        fieldValue: trim ? trimmedValue : value,
+        message,
+      });
+    }
+  }
+
+  // validate is maxLength value
+  if (typeof value === 'string' && maxLength != null) {
+    const isValid = value.length <= maxLength;
+
+    if (!isValid) {
+      const message = customMessage
+        ? customMessage
+        : `${capitalizeStr(fieldName)} input field must be below ${maxLength}.`;
+
+      manageValidationBug({
+        validationStatus: isValid,
+        validationType: 'maxLength',
+        fieldName: `${fieldName}`,
+        fieldValue: trim ? trimmedValue : value,
+        message,
+      });
+    }
+  }
+
+  // validate is minLength value
+  if (minLength != null && typeof value === 'string') {
+    const isValid = value.length >= minLength;
+
+    if (!isValid) {
+      const message = customMessage
+        ? customMessage
+        : `${capitalizeStr(
+            fieldName
+          )} input field must be above ${minLength} characters.`;
+
+      manageValidationBug({
+        validationStatus: isValid,
+        validationType: 'minLength',
+        fieldName: `${fieldName}`,
+        fieldValue: trim ? trimmedValue : value,
+        message,
+      });
+    }
+  }
+
+  // Validate is max value
+  if (max != null && typeof value === 'number') {
+    const isValid = value <= max;
+
+    if (!isValid) {
+      const message = customMessage
+        ? customMessage
+        : `${capitalizeStr(fieldName)} input field must be below ${max}.`;
+
+      manageValidationBug({
+        validationStatus: isValid,
+        validationType: 'max',
+        fieldName: `${fieldName}`,
+        fieldValue: value,
+        message,
+      });
+    }
+  }
+
+  // Validate is min value
+  if (min != null && typeof value === 'number') {
+    const isValid = value >= min;
+
+    if (!isValid) {
+      const message = customMessage
+        ? customMessage
+        : `${capitalizeStr(fieldName)} input field must be more than ${min}.`;
+
+      manageValidationBug({
+        validationStatus: isValid,
+        validationType: 'min',
+        fieldName: `${fieldName}`,
+        fieldValue: value,
+        message,
+      });
+    }
+  }
+
+  return validationBug;
+};
+
+/**
  * Project input Class -> Responsible for rendering project adding form
  */
 class ProjectInputs {
@@ -103,6 +318,15 @@ class ProjectInputs {
     this.peopleInputValue = people;
   }
 
+  private showValidationNotification(validationArr: Messagable[]) {
+    const messages: string[] = [];
+    validationArr.forEach(vld => {
+      if (!vld.validationStatus) messages.push(vld.message);
+    });
+
+    return messages;
+  }
+
   /**
    * Gets user input values
    * @returns {[string, string, number] | void} A tuple of title, description, people or void
@@ -117,9 +341,65 @@ class ProjectInputs {
     const enteredDescription = this.descriptionInputValue as string;
     const enteredPeople = +this.peopleInputValue as number;
 
-    /// TODO: Handle validations -> min, max, minLength, maxLength, required, isNumber
+    /// TODO: Handle validations -> trim, min, max, minLength, maxLength, required, isNumber
+    const validateTitle: Validatable = {
+      value: enteredTitle,
+      fieldName: 'title',
+      required: true,
+      trim: true,
+      minLength: 5,
+    };
 
-    /// Validation logic -> if no errors send the values
+    const validateDescription: Validatable = {
+      value: enteredDescription,
+      fieldName: 'description',
+      trim: true,
+      minLength: 10,
+      maxLength: 300,
+      required: true,
+    };
+
+    const validatePeople: Validatable = {
+      value: enteredPeople,
+      fieldName: 'people',
+      required: true,
+      min: 1,
+      max: 5,
+      allowZero: AllowZero.Disallow,
+    };
+
+    /// Validation logic -> if no errors send the value
+    /// TODO: Handle field validations individually for appropriete error response
+
+    // Handle validations -> Title
+    const titleValidationMsgs = this.showValidationNotification(
+      validate(validateTitle)
+    );
+
+    // Handle validations -> Description
+    const descriptionValidationMsgs = this.showValidationNotification(
+      validate(validateDescription)
+    );
+
+    // Handle validations -> People
+    const peopleValidationMsgs = this.showValidationNotification(
+      validate(validatePeople)
+    );
+
+    // Allvalidations
+    const validationMessages = [
+      ...titleValidationMsgs,
+      ...descriptionValidationMsgs,
+      ...peopleValidationMsgs,
+    ];
+
+    if (validationMessages.length > 0) {
+      alert(
+        `Validation failed in the following Fields!\n${validationMessages.join(
+          '\n'
+        )}`
+      );
+    }
 
     return [enteredTitle, enteredDescription, enteredPeople];
   }
