@@ -22,8 +22,8 @@ var AllowZero;
 })(AllowZero || (AllowZero = {}));
 const validate = function (validateOptions) {
     const { value, fieldName, customMessage, required, maxLength, minLength, max, min, trim, allowZero, } = validateOptions;
-    const validationBug = [];
-    const manageValidationBug = (messageFields) => {
+    const validationBag = [];
+    const manageValidationBag = (messageFields) => {
         const { validationStatus, validationType, fieldName, fieldValue, message } = messageFields;
         const validationStatusConstruct = {
             validationStatus,
@@ -32,7 +32,7 @@ const validate = function (validateOptions) {
             fieldValue,
             message,
         };
-        validationBug.push(validationStatusConstruct);
+        validationBag.push(validationStatusConstruct);
     };
     let trimmedValue = '';
     const capitalizeStr = (str) => {
@@ -50,7 +50,7 @@ const validate = function (validateOptions) {
             const message = customMessage
                 ? customMessage
                 : `${capitalizeStr(fieldName)} input field has no value.`;
-            manageValidationBug({
+            manageValidationBag({
                 validationStatus: isValid,
                 validationType: 'required',
                 fieldName: `${fieldName}`,
@@ -65,7 +65,7 @@ const validate = function (validateOptions) {
             const message = customMessage
                 ? customMessage
                 : `${capitalizeStr(fieldName)} input field must be below ${maxLength}.`;
-            manageValidationBug({
+            manageValidationBag({
                 validationStatus: isValid,
                 validationType: 'maxLength',
                 fieldName: `${fieldName}`,
@@ -80,7 +80,7 @@ const validate = function (validateOptions) {
             const message = customMessage
                 ? customMessage
                 : `${capitalizeStr(fieldName)} input field must be above ${minLength} characters.`;
-            manageValidationBug({
+            manageValidationBag({
                 validationStatus: isValid,
                 validationType: 'minLength',
                 fieldName: `${fieldName}`,
@@ -95,7 +95,7 @@ const validate = function (validateOptions) {
             const message = customMessage
                 ? customMessage
                 : `${capitalizeStr(fieldName)} input field must be below ${max}.`;
-            manageValidationBug({
+            manageValidationBag({
                 validationStatus: isValid,
                 validationType: 'max',
                 fieldName: `${fieldName}`,
@@ -110,7 +110,7 @@ const validate = function (validateOptions) {
             const message = customMessage
                 ? customMessage
                 : `${capitalizeStr(fieldName)} input field must be more than ${min}.`;
-            manageValidationBug({
+            manageValidationBag({
                 validationStatus: isValid,
                 validationType: 'min',
                 fieldName: `${fieldName}`,
@@ -119,7 +119,7 @@ const validate = function (validateOptions) {
             });
         }
     }
-    return validationBug;
+    return validationBag;
 };
 class ProjectInputs {
     constructor() {

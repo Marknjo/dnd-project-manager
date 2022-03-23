@@ -98,14 +98,14 @@ const validate = function (validateOptions: Validatable): Messagable[] {
     allowZero,
   } = validateOptions;
 
-  /// Messaging bug
-  const validationBug: Messagable[] = [];
+  /// Messaging bag
+  const validationBag: Messagable[] = [];
 
   /**
-   * Pushes error messages to validation bug
+   * Pushes error messages to validation bag
    * @param messageFields Implements messagable interface
    */
-  const manageValidationBug = (messageFields: Messagable) => {
+  const manageValidationBag = (messageFields: Messagable) => {
     const { validationStatus, validationType, fieldName, fieldValue, message } =
       messageFields;
 
@@ -117,7 +117,7 @@ const validate = function (validateOptions: Validatable): Messagable[] {
       message,
     };
 
-    validationBug.push(validationStatusConstruct);
+    validationBag.push(validationStatusConstruct);
   };
 
   let trimmedValue = '';
@@ -150,7 +150,7 @@ const validate = function (validateOptions: Validatable): Messagable[] {
         ? customMessage
         : `${capitalizeStr(fieldName)} input field has no value.`;
 
-      manageValidationBug({
+      manageValidationBag({
         validationStatus: isValid,
         validationType: 'required',
         fieldName: `${fieldName}`,
@@ -169,7 +169,7 @@ const validate = function (validateOptions: Validatable): Messagable[] {
         ? customMessage
         : `${capitalizeStr(fieldName)} input field must be below ${maxLength}.`;
 
-      manageValidationBug({
+      manageValidationBag({
         validationStatus: isValid,
         validationType: 'maxLength',
         fieldName: `${fieldName}`,
@@ -190,7 +190,7 @@ const validate = function (validateOptions: Validatable): Messagable[] {
             fieldName
           )} input field must be above ${minLength} characters.`;
 
-      manageValidationBug({
+      manageValidationBag({
         validationStatus: isValid,
         validationType: 'minLength',
         fieldName: `${fieldName}`,
@@ -209,7 +209,7 @@ const validate = function (validateOptions: Validatable): Messagable[] {
         ? customMessage
         : `${capitalizeStr(fieldName)} input field must be below ${max}.`;
 
-      manageValidationBug({
+      manageValidationBag({
         validationStatus: isValid,
         validationType: 'max',
         fieldName: `${fieldName}`,
@@ -228,7 +228,7 @@ const validate = function (validateOptions: Validatable): Messagable[] {
         ? customMessage
         : `${capitalizeStr(fieldName)} input field must be more than ${min}.`;
 
-      manageValidationBug({
+      manageValidationBag({
         validationStatus: isValid,
         validationType: 'min',
         fieldName: `${fieldName}`,
@@ -238,7 +238,7 @@ const validate = function (validateOptions: Validatable): Messagable[] {
     }
   }
 
-  return validationBug;
+  return validationBag;
 };
 
 /**
