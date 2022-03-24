@@ -141,7 +141,7 @@ class ProjectInputs {
         this.descriptionInputValue = description;
         this.peopleInputValue = people;
     }
-    showValidationNotification(validationArr) {
+    getValidationMessages(validationArr) {
         const messages = [];
         validationArr.forEach(vld => {
             if (!vld.validationStatus)
@@ -177,9 +177,9 @@ class ProjectInputs {
             max: 5,
             allowZero: AllowZero.Disallow,
         };
-        const titleValidationMsgs = this.showValidationNotification(validate(validateTitle));
-        const descriptionValidationMsgs = this.showValidationNotification(validate(validateDescription));
-        const peopleValidationMsgs = this.showValidationNotification(validate(validatePeople));
+        const titleValidationMsgs = this.getValidationMessages(validate(validateTitle));
+        const descriptionValidationMsgs = this.getValidationMessages(validate(validateDescription));
+        const peopleValidationMsgs = this.getValidationMessages(validate(validatePeople));
         const validationMessages = [
             ...titleValidationMsgs,
             ...descriptionValidationMsgs,

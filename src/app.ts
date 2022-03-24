@@ -318,7 +318,12 @@ class ProjectInputs {
     this.peopleInputValue = people;
   }
 
-  private showValidationNotification(validationArr: Messagable[]) {
+  /**
+   * Add all validations messages to a single collection array
+   * @param validationArr Collection of validations
+   * @returns Validations output
+   */
+  private getValidationMessages(validationArr: Messagable[]) {
     const messages: string[] = [];
     validationArr.forEach(vld => {
       if (!vld.validationStatus) messages.push(vld.message);
@@ -341,7 +346,8 @@ class ProjectInputs {
     const enteredDescription = this.descriptionInputValue as string;
     const enteredPeople = +this.peopleInputValue as number;
 
-    /// TODO: Handle validations -> trim, min, max, minLength, maxLength, required, isNumber
+    /// Handle validations -> trim, min, max, minLength, maxLength, required, isNumber
+    // Validate title input
     const validateTitle: Validatable = {
       value: enteredTitle,
       fieldName: 'title',
@@ -350,6 +356,7 @@ class ProjectInputs {
       minLength: 5,
     };
 
+    // Validate Description input
     const validateDescription: Validatable = {
       value: enteredDescription,
       fieldName: 'description',
@@ -359,6 +366,7 @@ class ProjectInputs {
       required: true,
     };
 
+    // Validate People input
     const validatePeople: Validatable = {
       value: enteredPeople,
       fieldName: 'people',
@@ -368,21 +376,18 @@ class ProjectInputs {
       allowZero: AllowZero.Disallow,
     };
 
-    /// Validation logic -> if no errors send the value
-    /// TODO: Handle field validations individually for appropriete error response
-
-    // Handle validations -> Title
-    const titleValidationMsgs = this.showValidationNotification(
+    // Send validations and get the validation messages validations -> Title
+    const titleValidationMsgs = this.getValidationMessages(
       validate(validateTitle)
     );
 
-    // Handle validations -> Description
-    const descriptionValidationMsgs = this.showValidationNotification(
+    // Send validations and get the validation messages validations -> Description
+    const descriptionValidationMsgs = this.getValidationMessages(
       validate(validateDescription)
     );
 
-    // Handle validations -> People
-    const peopleValidationMsgs = this.showValidationNotification(
+    // Send validations and get the validation messages validations -> People
+    const peopleValidationMsgs = this.getValidationMessages(
       validate(validatePeople)
     );
 
@@ -401,6 +406,7 @@ class ProjectInputs {
       );
     }
 
+    /// Validation logic -> if no errors send the value
     return [enteredTitle, enteredDescription, enteredPeople];
   }
 
