@@ -242,6 +242,74 @@ const validate = function (validateOptions: Validatable): Messagable[] {
 };
 
 /**
+ * Implement rendering of project lists
+ */
+class ProjectList {
+  /**
+   * @property Gets the template holding the form element
+   */
+  templateEl: HTMLTemplateElement;
+
+  /**
+   * @property App root container
+   */
+  appRootEl: HTMLDivElement;
+
+  /**
+   * @property stores/holds the form element
+   */
+  domEl: HTMLElement;
+
+  // Constructor
+  constructor(public type: 'active' | 'finished' = 'active') {
+    // Assign template element
+    this.templateEl = document.getElementById(
+      'project-list'
+    )! as HTMLTemplateElement;
+
+    // Assign App Root container
+    this.appRootEl = document.getElementById('app')! as HTMLDivElement;
+
+    // Assign Dom Element
+    const insertedDOMElement = document.importNode(
+      this.templateEl.content,
+      true
+    );
+
+    this.domEl = insertedDOMElement.firstElementChild as HTMLElement;
+
+    // Add a div class
+    this.domEl.id = `${this.type}-projects`;
+
+    // Add DOM configurations
+    this.configureDomEl();
+
+    //render elements to DOM
+    this.render();
+  }
+
+  // Configure List
+  configureDomEl() {
+    const listId = `${this.type}-projects-list`;
+
+    console.log(this.domEl.querySelector('h2'));
+
+    this.domEl.querySelector('ul')!.id = listId;
+    this.domEl.querySelector(
+      'h2'
+    )!.innerText = `${this.type.toLocaleUpperCase()} PROJECTS`;
+  }
+
+  // AddEffects
+
+  // render
+
+  render() {
+    this.appRootEl.insertAdjacentElement('beforeend', this.domEl);
+  }
+}
+
+/**
  * Project input Class -> Responsible for rendering project adding form
  */
 class ProjectInputs {
@@ -319,7 +387,7 @@ class ProjectInputs {
   }
 
   /**
-   * Add all validations messages to a single collection array
+   * Get all validations messages to a single collection array
    * @param validationArr Collection of validations
    * @returns Validations output
    */
@@ -449,4 +517,11 @@ class ProjectInputs {
 }
 
 /// Initialize Project Imputs
-const projects = new ProjectInputs();
+new ProjectInputs();
+
+/// Handle project list containers
+/// ACTIVE - first
+new ProjectList('active');
+
+/// ACTIVE - Finished second
+new ProjectList('finished');
