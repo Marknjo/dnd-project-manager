@@ -30,25 +30,70 @@ class Project {
 /**
  * Define Listener type
  */
-type Listener = (projectItem: Project[]) => void;
+type Listener<T> = (projectItem: T[]) => void;
+
+/**
+ * Extensible Store class as base for all stores
+ */
+abstract class Store<T, U> {
+  /**
+   * @property Holds items in an array
+   */
+  protected store: T[];
+
+  /**
+   * @property Holds functions subscribing to the store
+   */
+  protected listeners: Listener<T>[];
+
+  /**
+   * Store constructor
+   */
+  constructor() {
+    this.store = [];
+    this.listeners = [];
+  }
+
+  /**
+   * Adds a listener function to the listeners
+   * @param listenerFn An incoming function with the activity to listen to
+   */
+  addlistener(listenerFn: Listener<T>) {
+    this.listeners.push(listenerFn);
+  }
+
+  /**
+   * Adds a payload to the store or state
+   * @param payload An object describing how the payload looks like
+   */
+  abstract addPayload(payload: U): void;
+
+  /**
+   * update listener functions -> letting them know a new project item was added to store
+   */
+  protected updateListener() {
+    this.listeners.forEach(listenerFn => {
+      listenerFn(this.store.slice());
+    });
+  }
+}
+
+/**
+ * Project Payload
+ */
+interface ProjectPayload {
+  title: string;
+  description: string;
+  noOfPeople: number;
+}
 
 /**
  *
  * Implement Store
  */
-class ProjectStore {
+class ProjectStore extends Store<Project, ProjectPayload> {
   // TODO: create store bag, listener functions bag, addListers to listerns bag, current instace
   // getInstance static method, add to store method, private constructor
-
-  /**
-   * @property Holds items in an array
-   */
-  private store: Project[] = [];
-
-  /**
-   * @property Holds functions subscribing to the store
-   */
-  private listeners: Listener[] = [];
 
   /**
    * @property Current project instance
@@ -56,7 +101,9 @@ class ProjectStore {
   private static instance: ProjectStore;
 
   // private constructor
-  private constructor() {}
+  private constructor() {
+    super();
+  }
 
   /**
    * Gets that current instance without creating two objects of this class
@@ -72,45 +119,25 @@ class ProjectStore {
 
   /**
    * Adds project to the store or state
-   * @param title Project title
-   * @param description Description of the project
-   * @param people People to be allowed in the project
+   * @param payload An object containing title, description, and number of people
    */
-  addProject(title: string, description: string, people: number) {
+  addPayload(payload: ProjectPayload) {
+    const { title, description, noOfPeople } = payload;
     // Constrict project item Object
     // TODO: Implement id: uuidV4(),
     const projectItem = new Project(
       Math.random().toString(),
       title,
       description,
-      people,
+      noOfPeople,
       ProjectStatus.Active
     );
 
     // Push new object to store
     this.store.push(projectItem);
 
-    console.log(this.store);
-
     ///update listeners -> let them know a new object was added to store
     this.updateListener();
-  }
-
-  /**
-   * Adds a listener function to the listeners
-   * @param listenerFn An incoming function with the activity to listen to
-   */
-  addlistener(listenerFn: Listener) {
-    this.listeners.push(listenerFn);
-  }
-
-  /**
-   * update listener functions -> letting them know a new project item was added to store
-   */
-  private updateListener() {
-    this.listeners.forEach(listenerFn => {
-      listenerFn(this.store.slice());
-    });
   }
 }
 
@@ -647,8 +674,14 @@ class ProjectInputs {
     if (Array.isArray(validatedInputs)) {
       const [title, description, people] = validatedInputs;
 
+      const data: ProjectPayload = {
+        title,
+        description,
+        noOfPeople: people,
+      };
+
       /// Send project item to the store
-      projectStore.addProject(title, description, people);
+      projectStore.addPayload(data);
     }
   }
 

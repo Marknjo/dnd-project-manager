@@ -19,23 +19,10 @@ class Project {
         this.status = status;
     }
 }
-class ProjectStore {
+class Store {
     constructor() {
         this.store = [];
         this.listeners = [];
-    }
-    static getInstance() {
-        if (this.instance) {
-            return this.instance;
-        }
-        this.instance = new ProjectStore();
-        return this.instance;
-    }
-    addProject(title, description, people) {
-        const projectItem = new Project(Math.random().toString(), title, description, people, ProjectStatus.Active);
-        this.store.push(projectItem);
-        console.log(this.store);
-        this.updateListener();
     }
     addlistener(listenerFn) {
         this.listeners.push(listenerFn);
@@ -44,6 +31,24 @@ class ProjectStore {
         this.listeners.forEach(listenerFn => {
             listenerFn(this.store.slice());
         });
+    }
+}
+class ProjectStore extends Store {
+    constructor() {
+        super();
+    }
+    static getInstance() {
+        if (this.instance) {
+            return this.instance;
+        }
+        this.instance = new ProjectStore();
+        return this.instance;
+    }
+    addPayload(payload) {
+        const { title, description, noOfPeople } = payload;
+        const projectItem = new Project(Math.random().toString(), title, description, noOfPeople, ProjectStatus.Active);
+        this.store.push(projectItem);
+        this.updateListener();
     }
 }
 const projectStore = ProjectStore.getInstance();
@@ -279,7 +284,12 @@ class ProjectInputs {
         const validatedInputs = this.getFormInputsAndValidate();
         if (Array.isArray(validatedInputs)) {
             const [title, description, people] = validatedInputs;
-            projectStore.addProject(title, description, people);
+            const data = {
+                title,
+                description,
+                noOfPeople: people,
+            };
+            projectStore.addPayload(data);
         }
     }
     render() {
