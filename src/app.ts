@@ -47,6 +47,13 @@ abstract class Store<T, U> {
   protected listeners: Listener<T>[];
 
   /**
+   * Get current store status
+   */
+  get getStore() {
+    return this.store;
+  }
+
+  /**
    * Store constructor
    */
   constructor() {
@@ -199,6 +206,7 @@ interface Validatable {
   trim?: boolean;
   max?: number;
   min?: number;
+  unique?: boolean;
   allowZero?: AllowZero;
 }
 
@@ -237,6 +245,7 @@ const validate = function (validateOptions: Validatable): Messagable[] {
     min,
     trim,
     allowZero,
+    unique,
   } = validateOptions;
 
   /// Messaging bag
@@ -294,6 +303,30 @@ const validate = function (validateOptions: Validatable): Messagable[] {
       manageValidationBag({
         validationStatus: isValid,
         validationType: 'required',
+        fieldName: `${fieldName}`,
+        fieldValue: trim ? trimmedValue : value,
+        message,
+      });
+    }
+  }
+
+  if (unique) {
+    // get to the store
+    const foundItem = projectStore.getStore.find(item => item.title === value);
+
+    // Construct validation logic
+    const isValid = foundItem ? false : true;
+
+    if (!isValid) {
+      const message = customMessage
+        ? customMessage
+        : `A project with the title ${value}  already added. Ensure your (${capitalizeStr(
+            fieldName
+          )}) input value is unique.`;
+
+      manageValidationBag({
+        validationStatus: isValid,
+        validationType: 'unique',
         fieldName: `${fieldName}`,
         fieldValue: trim ? trimmedValue : value,
         message,
@@ -602,6 +635,7 @@ class ProjectInputs {
       required: true,
       trim: true,
       minLength: 5,
+      unique: true,
     };
 
     // Validate Description input

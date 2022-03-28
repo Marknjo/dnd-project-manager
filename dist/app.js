@@ -24,6 +24,9 @@ class Store {
         this.store = [];
         this.listeners = [];
     }
+    get getStore() {
+        return this.store;
+    }
     addlistener(listenerFn) {
         this.listeners.push(listenerFn);
     }
@@ -68,7 +71,7 @@ var AllowZero;
     AllowZero[AllowZero["Disallow"] = 1] = "Disallow";
 })(AllowZero || (AllowZero = {}));
 const validate = function (validateOptions) {
-    const { value, fieldName, customMessage, required, maxLength, minLength, max, min, trim, allowZero, } = validateOptions;
+    const { value, fieldName, customMessage, required, maxLength, minLength, max, min, trim, allowZero, unique, } = validateOptions;
     const validationBag = [];
     const manageValidationBag = (messageFields) => {
         const { validationStatus, validationType, fieldName, fieldValue, message } = messageFields;
@@ -100,6 +103,22 @@ const validate = function (validateOptions) {
             manageValidationBag({
                 validationStatus: isValid,
                 validationType: 'required',
+                fieldName: `${fieldName}`,
+                fieldValue: trim ? trimmedValue : value,
+                message,
+            });
+        }
+    }
+    if (unique) {
+        const foundItem = projectStore.getStore.find(item => item.title === value);
+        const isValid = foundItem ? false : true;
+        if (!isValid) {
+            const message = customMessage
+                ? customMessage
+                : `A project with the title ${value}  already added. Ensure your (${capitalizeStr(fieldName)}) input value is unique.`;
+            manageValidationBag({
+                validationStatus: isValid,
+                validationType: 'unique',
                 fieldName: `${fieldName}`,
                 fieldValue: trim ? trimmedValue : value,
                 message,
@@ -249,6 +268,7 @@ class ProjectInputs {
             required: true,
             trim: true,
             minLength: 5,
+            unique: true,
         };
         const validateDescription = {
             value: enteredDescription,
