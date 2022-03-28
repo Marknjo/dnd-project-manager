@@ -416,9 +416,13 @@ const validate = function (validateOptions: Validatable): Messagable[] {
 };
 
 /**
- * Implement rendering of project lists
+ * Abstract component as the base component of UI
  */
-class ProjectList {
+abstract class Component<
+  T extends HTMLElement,
+  U extends HTMLElement,
+  S extends object
+> {
   /**
    * @property Gets the template holding the form element
    */
@@ -427,27 +431,45 @@ class ProjectList {
   /**
    * @property App root container
    */
-  appRootEl: HTMLDivElement;
+  appRootEl: T;
 
   /**
    * @property stores/holds the form element
    */
-  domEl: HTMLElement;
+  domEl: U;
 
   /**
-   * @property stores/holds the form element
+   * @property handles the current component state from the store
    */
-  assignedProject: Project[] = [];
+  componentState: S[];
 
-  // Constructor
-  constructor(public type: 'active' | 'finished' = 'active') {
+  /**
+   *
+   * @param rootId The root/host element id to place the template
+   * @param templateId The template which contains the html elements to place in the root element/container
+   * @param renderPosition The insert loaction (beforebegin, afterbegin, beforeend and afterend) positions
+   * @param componentId A custom id to give to the current element
+   */
+  constructor(
+    rootId: string,
+    templateId: string,
+    public renderPosition:
+      | 'beforebegin'
+      | 'beforeend'
+      | 'afterbegin'
+      | 'afterend' = 'beforeend',
+    componentId: string = ''
+  ) {
+    // initialized component state
+    this.componentState = [];
+
     // Assign template element
     this.templateEl = document.getElementById(
-      'project-list'
+      templateId
     )! as HTMLTemplateElement;
 
     // Assign App Root container
-    this.appRootEl = document.getElementById('app')! as HTMLDivElement;
+    this.appRootEl = document.getElementById(rootId)! as T;
 
     // Assign Dom Element
     const insertedDOMElement = document.importNode(
@@ -455,37 +477,57 @@ class ProjectList {
       true
     );
 
-    this.domEl = insertedDOMElement.firstElementChild as HTMLElement;
+    this.domEl = insertedDOMElement.firstElementChild as U;
 
-    // Add a div class
-    this.domEl.id = `${this.type}-projects`;
+    // Set a uniq id to the component
+    if (componentId) this.domEl.id = componentId;
 
-    // Get projects from the store
-    projectStore.addlistener((projectsInStore: Project[]) => {
-      const returnedProject: Project[] = projectsInStore.filter(projectItem => {
-        // Render in the active container
-        if (type === 'active') {
-          return projectItem.status === ProjectStatus.Active;
-        }
-
-        // Render finished projects in the finished container
-        if (type === 'finished') {
-          return projectItem.status === ProjectStatus.Finished;
-        }
-      });
-
-      /// Update the assigned project container
-      this.assignedProject = returnedProject;
-
-      /// Render project Item
-      this.renderProjectItem();
-    });
+    /// Configurations -> Add configs in the individual components
 
     //render elements to DOM
     this.render();
+  }
+
+  /**
+   * Render the calling class to the UI
+   */
+  private render() {
+    this.appRootEl.insertAdjacentElement(this.renderPosition, this.domEl);
+  }
+
+  /// Implements the following methods
+  /**
+   * Configures how the added element to the UI looks like
+   */
+  abstract configDomElement(): void;
+
+  /**
+   * Responsible for listening store changes
+   */
+  abstract configureStore(): void;
+
+  /**
+   * Handle listeners if any
+   */
+  abstract handleEvents(): void;
+}
+
+/**
+ * Implement rendering of project lists
+ */
+class ProjectList extends Component<HTMLDivElement, HTMLElement, Project> {
+  // Constructor
+  constructor(public type: 'active' | 'finished' = 'active') {
+    // Init root component
+    super('app', 'project-list', 'beforeend', `${type}-projects`);
+
+    // Get projects from the store
+
+    //render elements to DOM
+    this.configureStore();
 
     // Add DOM configurations
-    this.configureDomEl();
+    this.configDomElement();
   }
 
   // AddEffects
@@ -500,19 +542,37 @@ class ProjectList {
     listEl.innerHTML = '';
 
     // Add items
-    this.assignedProject.forEach(projectItem => {
+    this.componentState.forEach(projectItem => {
       const listItem = document.createElement('li');
       listItem.textContent = projectItem.title;
       listEl.appendChild(listItem);
     });
   }
 
-  private render() {
-    this.appRootEl.insertAdjacentElement('beforeend', this.domEl);
+  configureStore(): void {
+    projectStore.addlistener((projectsInStore: Project[]) => {
+      const returnedProject: Project[] = projectsInStore.filter(projectItem => {
+        // Render in the active container
+        if (this.type === 'active') {
+          return projectItem.status === ProjectStatus.Active;
+        }
+
+        // Render finished projects in the finished container
+        if (this.type === 'finished') {
+          return projectItem.status === ProjectStatus.Finished;
+        }
+      });
+
+      /// Update the assigned project container
+      this.componentState = returnedProject;
+
+      /// Render project Item
+      this.renderProjectItem();
+    });
   }
 
   // Configure List
-  private configureDomEl() {
+  configDomElement(): void {
     const listId = `${this.type}-projects-list`;
 
     this.domEl.querySelector('ul')!.id = listId;
@@ -520,29 +580,19 @@ class ProjectList {
       'h2'
     )!.innerText = `${this.type.toLocaleUpperCase()} PROJECTS`;
   }
+
+  /// Handle listeners
+  handleEvents(): void {}
 }
 
 /**
  * Project input Class -> Responsible for rendering project adding form
  */
-class ProjectInputs {
-  /**
-   * @property Gets the template holding the form element
-   */
-  templateEl: HTMLTemplateElement;
-
-  /**
-   * @property App root container
-   */
-  appRootEl: HTMLDivElement;
-
-  /**
-   * @property stores/holds the form element
-   */
-  domEl: HTMLFormElement;
-
-  ///// Handle Form Inputs
-
+class ProjectInputs extends Component<
+  HTMLDivElement,
+  HTMLFormElement,
+  Project
+> {
   /**
    * @property Holds the form title input value
    */
@@ -562,28 +612,11 @@ class ProjectInputs {
    * Initializes project inputs on login
    */
   constructor() {
-    /// Get template on class initialization
-    this.templateEl = document.getElementById(
-      'project-input'
-    )! as HTMLTemplateElement;
-
-    /// Get App Root
-    this.appRootEl = document.getElementById('app')! as HTMLDivElement;
-
-    /// get imported DOM Element
-    const importedDomEl = document.importNode(this.templateEl.content, true);
-
-    this.domEl = importedDomEl.firstElementChild as HTMLFormElement;
-
-    this.domEl.id = 'user-input';
-
-    /// Add elements to the form
+    // Init root component
+    super('app', 'project-input', 'afterbegin', 'user-input');
 
     /// Handle events handlers
-    this.addEffects();
-
-    /// Render the element on the UI
-    this.render();
+    this.handleEvents();
   }
 
   /**
@@ -721,20 +754,18 @@ class ProjectInputs {
   }
 
   /**
-   * Renders DOM element to the UI
-   */
-  private render() {
-    this.appRootEl.insertAdjacentElement('afterbegin', this.domEl);
-  }
-
-  /**
    *  Add events listeners to the dom El
-   *  // TODO: Enforce it during extending the class
+   *
    */
-  private addEffects() {
+  handleEvents() {
     /// Event listener handling form submission
     document.addEventListener('submit', this.handleFormSubmit);
   }
+
+  /// Unimplemented abstract methods
+  configureStore(): void {}
+
+  configDomElement(): void {}
 }
 
 /// Initialize Project Imputs

@@ -187,60 +187,66 @@ const validate = function (validateOptions) {
     }
     return validationBag;
 };
-class ProjectList {
-    constructor(type = 'active') {
-        this.type = type;
-        this.assignedProject = [];
-        this.templateEl = document.getElementById('project-list');
-        this.appRootEl = document.getElementById('app');
+class Component {
+    constructor(rootId, templateId, renderPosition = 'beforeend', componentId = '') {
+        this.renderPosition = renderPosition;
+        this.componentState = [];
+        this.templateEl = document.getElementById(templateId);
+        this.appRootEl = document.getElementById(rootId);
         const insertedDOMElement = document.importNode(this.templateEl.content, true);
         this.domEl = insertedDOMElement.firstElementChild;
-        this.domEl.id = `${this.type}-projects`;
-        projectStore.addlistener((projectsInStore) => {
-            const returnedProject = projectsInStore.filter(projectItem => {
-                if (type === 'active') {
-                    return projectItem.status === ProjectStatus.Active;
-                }
-                if (type === 'finished') {
-                    return projectItem.status === ProjectStatus.Finished;
-                }
-            });
-            this.assignedProject = returnedProject;
-            this.renderProjectItem();
-        });
+        if (componentId)
+            this.domEl.id = componentId;
         this.render();
-        this.configureDomEl();
+    }
+    render() {
+        this.appRootEl.insertAdjacentElement(this.renderPosition, this.domEl);
+    }
+}
+class ProjectList extends Component {
+    constructor(type = 'active') {
+        super('app', 'project-list', 'beforeend', `${type}-projects`);
+        this.type = type;
+        this.configureStore();
+        this.configDomElement();
     }
     renderProjectItem() {
         const listEl = document.getElementById(`${this.type}-projects-list`);
         listEl.innerHTML = '';
-        this.assignedProject.forEach(projectItem => {
+        this.componentState.forEach(projectItem => {
             const listItem = document.createElement('li');
             listItem.textContent = projectItem.title;
             listEl.appendChild(listItem);
         });
     }
-    render() {
-        this.appRootEl.insertAdjacentElement('beforeend', this.domEl);
+    configureStore() {
+        projectStore.addlistener((projectsInStore) => {
+            const returnedProject = projectsInStore.filter(projectItem => {
+                if (this.type === 'active') {
+                    return projectItem.status === ProjectStatus.Active;
+                }
+                if (this.type === 'finished') {
+                    return projectItem.status === ProjectStatus.Finished;
+                }
+            });
+            this.componentState = returnedProject;
+            this.renderProjectItem();
+        });
     }
-    configureDomEl() {
+    configDomElement() {
         const listId = `${this.type}-projects-list`;
         this.domEl.querySelector('ul').id = listId;
         this.domEl.querySelector('h2').innerText = `${this.type.toLocaleUpperCase()} PROJECTS`;
     }
+    handleEvents() { }
 }
-class ProjectInputs {
+class ProjectInputs extends Component {
     constructor() {
+        super('app', 'project-input', 'afterbegin', 'user-input');
         this.titleInputValue = '';
         this.descriptionInputValue = '';
         this.peopleInputValue = '';
-        this.templateEl = document.getElementById('project-input');
-        this.appRootEl = document.getElementById('app');
-        const importedDomEl = document.importNode(this.templateEl.content, true);
-        this.domEl = importedDomEl.firstElementChild;
-        this.domEl.id = 'user-input';
-        this.addEffects();
-        this.render();
+        this.handleEvents();
     }
     setFormInputsWithValues() {
         const formData = new FormData(this.domEl);
@@ -313,12 +319,11 @@ class ProjectInputs {
             projectStore.addPayload(data);
         }
     }
-    render() {
-        this.appRootEl.insertAdjacentElement('afterbegin', this.domEl);
-    }
-    addEffects() {
+    handleEvents() {
         document.addEventListener('submit', this.handleFormSubmit);
     }
+    configureStore() { }
+    configDomElement() { }
 }
 __decorate([
     Autobind
