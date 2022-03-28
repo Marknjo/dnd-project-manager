@@ -8,6 +8,25 @@
 /// Define projectItem Elements
 //const;
 
+/// Define Active and Finished as  an enum
+enum ProjectStatus {
+  Active,
+  Finished,
+}
+
+/**
+ * Define Project object structure using class
+ */
+class Project {
+  constructor(
+    public id: string,
+    public title: string,
+    public description: string,
+    public noOfPeople: number,
+    public status: ProjectStatus
+  ) {}
+}
+
 /**
  *
  * Implement Store
@@ -19,7 +38,7 @@ class ProjectStore {
   /**
    * @property Holds items in an array
    */
-  private store: any[] = [];
+  private store: Project[] = [];
 
   /**
    * @property Holds functions subscribing to the store
@@ -54,16 +73,19 @@ class ProjectStore {
    */
   addProject(title: string, description: string, people: number) {
     // Constrict project item Object
-    const projectItem = {
-      // TODO: Implement id: uuidV4(),
-      id: Math.random().toString(),
+    // TODO: Implement id: uuidV4(),
+    const projectItem = new Project(
+      Math.random().toString(),
       title,
       description,
       people,
-    };
+      ProjectStatus.Active
+    );
 
     // Push new object to store
     this.store.push(projectItem);
+
+    console.log(this.store);
 
     ///update listeners -> let them know a new object was added to store
     this.updateListener();
@@ -350,7 +372,7 @@ class ProjectList {
   /**
    * @property stores/holds the form element
    */
-  assignedProject: any[] = [];
+  assignedProject: Project[] = [];
 
   // Constructor
   constructor(public type: 'active' | 'finished' = 'active') {
@@ -374,11 +396,23 @@ class ProjectList {
     this.domEl.id = `${this.type}-projects`;
 
     // Get projects from the store
-    projectStore.addlistener((projectsInStore: any[]) => {
-      projectsInStore.forEach(projectItem => {
-        this.assignedProject.push(projectItem);
+    projectStore.addlistener((projectsInStore: Project[]) => {
+      const returnedProject: Project[] = projectsInStore.filter(projectItem => {
+        // Render in the active container
+        if (type === 'active') {
+          return projectItem.status === ProjectStatus.Active;
+        }
+
+        // Render finished projects in the finished container
+        if (type === 'finished') {
+          return projectItem.status === ProjectStatus.Finished;
+        }
       });
 
+      /// Update the assigned project container
+      this.assignedProject = returnedProject;
+
+      /// Render project Item
       this.renderProjectItem();
     });
 

@@ -5,6 +5,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var ProjectStatus;
+(function (ProjectStatus) {
+    ProjectStatus[ProjectStatus["Active"] = 0] = "Active";
+    ProjectStatus[ProjectStatus["Finished"] = 1] = "Finished";
+})(ProjectStatus || (ProjectStatus = {}));
+class Project {
+    constructor(id, title, description, noOfPeople, status) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.noOfPeople = noOfPeople;
+        this.status = status;
+    }
+}
 class ProjectStore {
     constructor() {
         this.store = [];
@@ -18,13 +32,9 @@ class ProjectStore {
         return this.instance;
     }
     addProject(title, description, people) {
-        const projectItem = {
-            id: Math.random().toString(),
-            title,
-            description,
-            people,
-        };
+        const projectItem = new Project(Math.random().toString(), title, description, people, ProjectStatus.Active);
         this.store.push(projectItem);
+        console.log(this.store);
         this.updateListener();
     }
     addlistener(listenerFn) {
@@ -163,9 +173,15 @@ class ProjectList {
         this.domEl = insertedDOMElement.firstElementChild;
         this.domEl.id = `${this.type}-projects`;
         projectStore.addlistener((projectsInStore) => {
-            projectsInStore.forEach(projectItem => {
-                this.assignedProject.push(projectItem);
+            const returnedProject = projectsInStore.filter(projectItem => {
+                if (type === 'active') {
+                    return projectItem.status === ProjectStatus.Active;
+                }
+                if (type === 'finished') {
+                    return projectItem.status === ProjectStatus.Finished;
+                }
             });
+            this.assignedProject = returnedProject;
             this.renderProjectItem();
         });
         this.render();
