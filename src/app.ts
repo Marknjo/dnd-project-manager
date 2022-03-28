@@ -28,6 +28,11 @@ class Project {
 }
 
 /**
+ * Define Listener type
+ */
+type Listener = (projectItem: Project[]) => void;
+
+/**
  *
  * Implement Store
  */
@@ -43,7 +48,7 @@ class ProjectStore {
   /**
    * @property Holds functions subscribing to the store
    */
-  private listeners: Function[] = [];
+  private listeners: Listener[] = [];
 
   /**
    * @property Current project instance
@@ -95,7 +100,7 @@ class ProjectStore {
    * Adds a listener function to the listeners
    * @param listenerFn An incoming function with the activity to listen to
    */
-  addlistener(listenerFn: Function) {
+  addlistener(listenerFn: Listener) {
     this.listeners.push(listenerFn);
   }
 
