@@ -686,6 +686,7 @@ class ProjectInputs {
           '\n'
         )}`
       );
+      return;
     }
 
     /// Validation logic -> if no errors send the value

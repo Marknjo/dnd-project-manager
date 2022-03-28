@@ -296,6 +296,7 @@ class ProjectInputs {
         ];
         if (validationMessages.length > 0) {
             alert(`Validation failed in the following Fields!\n${validationMessages.join('\n')}`);
+            return;
         }
         return [enteredTitle, enteredDescription, enteredPeople];
     }
