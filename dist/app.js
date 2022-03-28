@@ -5,6 +5,38 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+class ProjectStore {
+    constructor() {
+        this.store = [];
+        this.listeners = [];
+    }
+    static getInstance() {
+        if (this.instance) {
+            return this.instance;
+        }
+        this.instance = new ProjectStore();
+        return this.instance;
+    }
+    addProject(title, description, people) {
+        const projectItem = {
+            id: Math.random().toString(),
+            title,
+            description,
+            people,
+        };
+        this.store.push(projectItem);
+        this.updateListener();
+    }
+    addlistener(listenerFn) {
+        this.listeners.push(listenerFn);
+    }
+    updateListener() {
+        this.listeners.forEach(listenerFn => {
+            listenerFn(this.store.slice());
+        });
+    }
+}
+const projectStore = ProjectStore.getInstance();
 const Autobind = function (_, _2, descriptor) {
     const originalMethod = descriptor.value;
     const adjustedDescriptor = {
@@ -124,22 +156,37 @@ const validate = function (validateOptions) {
 class ProjectList {
     constructor(type = 'active') {
         this.type = type;
+        this.assignedProject = [];
         this.templateEl = document.getElementById('project-list');
         this.appRootEl = document.getElementById('app');
         const insertedDOMElement = document.importNode(this.templateEl.content, true);
         this.domEl = insertedDOMElement.firstElementChild;
         this.domEl.id = `${this.type}-projects`;
-        this.configureDomEl();
+        projectStore.addlistener((projectsInStore) => {
+            projectsInStore.forEach(projectItem => {
+                this.assignedProject.push(projectItem);
+            });
+            this.renderProjectItem();
+        });
         this.render();
+        this.configureDomEl();
     }
-    configureDomEl() {
-        const listId = `${this.type}-projects-list`;
-        console.log(this.domEl.querySelector('h2'));
-        this.domEl.querySelector('ul').id = listId;
-        this.domEl.querySelector('h2').innerText = `${this.type.toLocaleUpperCase()} PROJECTS`;
+    renderProjectItem() {
+        const listEl = document.getElementById(`${this.type}-projects-list`);
+        listEl.innerHTML = '';
+        this.assignedProject.forEach(projectItem => {
+            const listItem = document.createElement('li');
+            listItem.textContent = projectItem.title;
+            listEl.appendChild(listItem);
+        });
     }
     render() {
         this.appRootEl.insertAdjacentElement('beforeend', this.domEl);
+    }
+    configureDomEl() {
+        const listId = `${this.type}-projects-list`;
+        this.domEl.querySelector('ul').id = listId;
+        this.domEl.querySelector('h2').innerText = `${this.type.toLocaleUpperCase()} PROJECTS`;
     }
 }
 class ProjectInputs {
@@ -216,7 +263,7 @@ class ProjectInputs {
         const validatedInputs = this.getFormInputsAndValidate();
         if (Array.isArray(validatedInputs)) {
             const [title, description, people] = validatedInputs;
-            console.log({ title, description, people });
+            projectStore.addProject(title, description, people);
         }
     }
     render() {

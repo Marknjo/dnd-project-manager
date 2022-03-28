@@ -1,7 +1,94 @@
+// TODO: implement import { v4 as uuidV4 } from 'uuid';
+
 // FIXME: Move different Features in different files
 // TODO: Implement ProjectInput class, ProjectList class, ProjectItem class, base Component class, form Validator, Project Store class, base Store class, Implement Drag and Drop, Add relevant interfaces, and types and enums if any -> Draggable interface, Droppable interface, ProjectStatus (Enum), Project Class, Validatable
 
 /// FIXME: IMPLEMENTATION -> remove this line
+
+/// Define projectItem Elements
+//const;
+
+/**
+ *
+ * Implement Store
+ */
+class ProjectStore {
+  // TODO: create store bag, listener functions bag, addListers to listerns bag, current instace
+  // getInstance static method, add to store method, private constructor
+
+  /**
+   * @property Holds items in an array
+   */
+  private store: any[] = [];
+
+  /**
+   * @property Holds functions subscribing to the store
+   */
+  private listeners: Function[] = [];
+
+  /**
+   * @property Current project instance
+   */
+  private static instance: ProjectStore;
+
+  // private constructor
+  private constructor() {}
+
+  /**
+   * Gets that current instance without creating two objects of this class
+   */
+  static getInstance() {
+    if (this.instance) {
+      return this.instance;
+    }
+
+    this.instance = new ProjectStore();
+    return this.instance;
+  }
+
+  /**
+   * Adds project to the store or state
+   * @param title Project title
+   * @param description Description of the project
+   * @param people People to be allowed in the project
+   */
+  addProject(title: string, description: string, people: number) {
+    // Constrict project item Object
+    const projectItem = {
+      // TODO: Implement id: uuidV4(),
+      id: Math.random().toString(),
+      title,
+      description,
+      people,
+    };
+
+    // Push new object to store
+    this.store.push(projectItem);
+
+    ///update listeners -> let them know a new object was added to store
+    this.updateListener();
+  }
+
+  /**
+   * Adds a listener function to the listeners
+   * @param listenerFn An incoming function with the activity to listen to
+   */
+  addlistener(listenerFn: Function) {
+    this.listeners.push(listenerFn);
+  }
+
+  /**
+   * update listener functions -> letting them know a new project item was added to store
+   */
+  private updateListener() {
+    this.listeners.forEach(listenerFn => {
+      listenerFn(this.store.slice());
+    });
+  }
+}
+
+/// Always ensure the project store is running
+const projectStore = ProjectStore.getInstance();
 
 /**
  * Automatically binds the method with this
@@ -260,6 +347,11 @@ class ProjectList {
    */
   domEl: HTMLElement;
 
+  /**
+   * @property stores/holds the form element
+   */
+  assignedProject: any[] = [];
+
   // Constructor
   constructor(public type: 'active' | 'finished' = 'active') {
     // Assign template element
@@ -281,31 +373,53 @@ class ProjectList {
     // Add a div class
     this.domEl.id = `${this.type}-projects`;
 
-    // Add DOM configurations
-    this.configureDomEl();
+    // Get projects from the store
+    projectStore.addlistener((projectsInStore: any[]) => {
+      projectsInStore.forEach(projectItem => {
+        this.assignedProject.push(projectItem);
+      });
+
+      this.renderProjectItem();
+    });
 
     //render elements to DOM
     this.render();
-  }
 
-  // Configure List
-  configureDomEl() {
-    const listId = `${this.type}-projects-list`;
-
-    console.log(this.domEl.querySelector('h2'));
-
-    this.domEl.querySelector('ul')!.id = listId;
-    this.domEl.querySelector(
-      'h2'
-    )!.innerText = `${this.type.toLocaleUpperCase()} PROJECTS`;
+    // Add DOM configurations
+    this.configureDomEl();
   }
 
   // AddEffects
 
   // render
+  renderProjectItem() {
+    const listEl = document.getElementById(
+      `${this.type}-projects-list`
+    )! as HTMLUListElement;
 
-  render() {
+    // Ensure that the list item is empty before adding new items
+    listEl.innerHTML = '';
+
+    // Add items
+    this.assignedProject.forEach(projectItem => {
+      const listItem = document.createElement('li');
+      listItem.textContent = projectItem.title;
+      listEl.appendChild(listItem);
+    });
+  }
+
+  private render() {
     this.appRootEl.insertAdjacentElement('beforeend', this.domEl);
+  }
+
+  // Configure List
+  private configureDomEl() {
+    const listId = `${this.type}-projects-list`;
+
+    this.domEl.querySelector('ul')!.id = listId;
+    this.domEl.querySelector(
+      'h2'
+    )!.innerText = `${this.type.toLocaleUpperCase()} PROJECTS`;
   }
 }
 
@@ -494,8 +608,8 @@ class ProjectInputs {
     if (Array.isArray(validatedInputs)) {
       const [title, description, people] = validatedInputs;
 
-      /// TODO: Send project item to the store
-      console.log({ title, description, people });
+      /// Send project item to the store
+      projectStore.addProject(title, description, people);
     }
   }
 
