@@ -15,6 +15,16 @@ enum ProjectStatus {
 }
 
 /**
+ * Insert postions
+ */
+enum Insertable {
+  BeforeBegin = 'beforebegin',
+  BeforeEnd = 'beforeend',
+  AfterBegin = 'afterbegin',
+  AfterEnd = 'afterend',
+}
+
+/**
  * Define Project object structure using class
  */
 class Project {
@@ -453,11 +463,7 @@ abstract class Component<
   constructor(
     rootId: string,
     templateId: string,
-    public renderPosition:
-      | 'beforebegin'
-      | 'beforeend'
-      | 'afterbegin'
-      | 'afterend' = 'beforeend',
+    public renderPosition: Insertable = Insertable.BeforeEnd,
     componentId: string = ''
   ) {
     // initialized component state
@@ -519,7 +525,7 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement, Project> {
   // Constructor
   constructor(public type: 'active' | 'finished' = 'active') {
     // Init root component
-    super('app', 'project-list', 'beforeend', `${type}-projects`);
+    super('app', 'project-list', Insertable.BeforeEnd, `${type}-projects`);
 
     // Get projects from the store
 
@@ -613,7 +619,7 @@ class ProjectInputs extends Component<
    */
   constructor() {
     // Init root component
-    super('app', 'project-input', 'afterbegin', 'user-input');
+    super('app', 'project-input', Insertable.AfterBegin, 'user-input');
 
     /// Handle events handlers
     this.handleEvents();

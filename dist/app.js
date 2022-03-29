@@ -10,6 +10,13 @@ var ProjectStatus;
     ProjectStatus[ProjectStatus["Active"] = 0] = "Active";
     ProjectStatus[ProjectStatus["Finished"] = 1] = "Finished";
 })(ProjectStatus || (ProjectStatus = {}));
+var Insertable;
+(function (Insertable) {
+    Insertable["BeforeBegin"] = "beforebegin";
+    Insertable["BeforeEnd"] = "beforeend";
+    Insertable["AfterBegin"] = "afterbegin";
+    Insertable["AfterEnd"] = "afterend";
+})(Insertable || (Insertable = {}));
 class Project {
     constructor(id, title, description, noOfPeople, status) {
         this.id = id;
@@ -188,7 +195,7 @@ const validate = function (validateOptions) {
     return validationBag;
 };
 class Component {
-    constructor(rootId, templateId, renderPosition = 'beforeend', componentId = '') {
+    constructor(rootId, templateId, renderPosition = Insertable.BeforeEnd, componentId = '') {
         this.renderPosition = renderPosition;
         this.componentState = [];
         this.templateEl = document.getElementById(templateId);
@@ -205,7 +212,7 @@ class Component {
 }
 class ProjectList extends Component {
     constructor(type = 'active') {
-        super('app', 'project-list', 'beforeend', `${type}-projects`);
+        super('app', 'project-list', Insertable.BeforeEnd, `${type}-projects`);
         this.type = type;
         this.configureStore();
         this.configDomElement();
@@ -242,7 +249,7 @@ class ProjectList extends Component {
 }
 class ProjectInputs extends Component {
     constructor() {
-        super('app', 'project-input', 'afterbegin', 'user-input');
+        super('app', 'project-input', Insertable.AfterBegin, 'user-input');
         this.titleInputValue = '';
         this.descriptionInputValue = '';
         this.peopleInputValue = '';
