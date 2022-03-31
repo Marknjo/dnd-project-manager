@@ -427,6 +427,9 @@ const validate = function (validateOptions: Validatable): Messagable[] {
 
 /**
  * Abstract component as the base component of UI
+ *  - T - generic For App root, type of the element of where to render the template
+ *  - U - generic For the template element, the HTMLElement/DomElement type of the element that will be rendered inside the appRoot
+ *  - S - A component state management container. Must be passed, though it is not a must for an element/template to manage state
  */
 abstract class Component<
   T extends HTMLElement,
