@@ -251,7 +251,11 @@ class ProjectList extends Component {
         this.type = type;
         this.configureStore();
         this.configDomElement();
+        this.handleEvents();
     }
+    dragEnterHandler(event) { }
+    dragLeaveHandler(event) { }
+    dropEventHandler(event) { }
     renderProjectItem() {
         const listEl = document.getElementById(`${this.type}-projects-list`);
         listEl.innerHTML = '';
@@ -278,7 +282,11 @@ class ProjectList extends Component {
         this.domEl.querySelector('ul').id = listId;
         this.domEl.querySelector('h2').innerText = `${this.type.toLocaleUpperCase()} PROJECTS`;
     }
-    handleEvents() { }
+    handleEvents() {
+        this.domEl.addEventListener('dragenter', this.dragEnterHandler);
+        this.domEl.addEventListener('dragleave', this.dragLeaveHandler);
+        this.domEl.addEventListener('drop', this.dropEventHandler);
+    }
 }
 class ProjectInputs extends Component {
     constructor() {

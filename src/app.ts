@@ -436,6 +436,18 @@ interface Draggable {
 }
 
 /**
+ * Droppable interface  - A contract for the droppend HTMLElement class Must implement
+ * @param dragEnterHandler Implements drag enter event of the dropped area
+ * @param dragLeaveHandler Implements the drag leave of the dragged parent
+ * @param dropEventHandler Implements the drop event of the dropped area
+ */
+interface Droppable {
+  dragEnterHandler(event: DragEvent): void;
+  dragLeaveHandler(event: DragEvent): void;
+  dropEventHandler(event: DragEvent): void;
+}
+
+/**
  * Abstract component as the base component of UI
  *  - T - generic For App root, type of the element of where to render the template
  *  - U - generic For the template element, the HTMLElement/DomElement type of the element that will be rendered inside the appRoot
@@ -597,7 +609,10 @@ class ProjectItem
 /**
  * Implement rendering of project lists
  */
-class ProjectList extends Component<HTMLDivElement, HTMLElement, Project> {
+class ProjectList
+  extends Component<HTMLDivElement, HTMLElement, Project>
+  implements Droppable
+{
   // Constructor
   constructor(public type: 'active' | 'finished' = 'active') {
     // Init root component
@@ -610,9 +625,17 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement, Project> {
 
     // Add DOM configurations
     this.configDomElement();
+
+    // Add events handling
+    this.handleEvents();
   }
 
   // AddEffects
+  dragEnterHandler(event: DragEvent): void {}
+
+  dragLeaveHandler(event: DragEvent): void {}
+
+  dropEventHandler(event: DragEvent): void {}
 
   // render
   renderProjectItem() {
@@ -666,7 +689,11 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement, Project> {
   }
 
   /// Handle listeners
-  handleEvents(): void {}
+  handleEvents(): void {
+    this.domEl.addEventListener('dragenter', this.dragEnterHandler);
+    this.domEl.addEventListener('dragleave', this.dragLeaveHandler);
+    this.domEl.addEventListener('drop', this.dropEventHandler);
+  }
 }
 
 /**
