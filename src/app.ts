@@ -519,6 +519,51 @@ abstract class Component<
 }
 
 /**
+ * Render a single project item
+ */
+class ProjectItem extends Component<HTMLUListElement, HTMLLIElement, Project> {
+  get numOfPeopleDescription() {
+    if (this.projectItem.noOfPeople > 1) {
+      return `${this.projectItem.noOfPeople} persons assigned`;
+    }
+
+    return `Only ${this.projectItem.noOfPeople} person assigned`;
+  }
+
+  /**
+   * Constructor
+   * @param projectStatusId The id/container (Active|Finished) of the project colum the new project is added
+   * @param projectItem A newly added project to the activities.
+   */
+  constructor(public projectStatusId: string, public projectItem: Project) {
+    super(
+      projectStatusId,
+      'single-project',
+      Insertable.BeforeEnd,
+      projectItem.id
+    );
+
+    // config item
+    this.configDomElement();
+  }
+
+  configDomElement(): void {
+    const titleContainerEl = this.domEl.querySelector('h2')!;
+    const descriptionContainerEl = this.domEl.querySelector('p')!;
+    const peopleContainerEl = this.domEl.querySelector('h3')!;
+
+    /// Add content to elements
+    titleContainerEl.innerText = this.projectItem.title;
+    descriptionContainerEl.innerText = this.projectItem.description;
+    peopleContainerEl.innerText = `${this.numOfPeopleDescription}`;
+  }
+
+  configureStore(): void {}
+
+  handleEvents(): void {}
+}
+
+/**
  * Implement rendering of project lists
  */
 class ProjectList extends Component<HTMLDivElement, HTMLElement, Project> {
@@ -549,9 +594,11 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement, Project> {
 
     // Add items
     this.componentState.forEach(projectItem => {
-      const listItem = document.createElement('li');
-      listItem.textContent = projectItem.title;
-      listEl.appendChild(listItem);
+      // const listItem = document.createElement('li');
+      // listItem.textContent = projectItem.title;
+      // listEl.appendChild(listItem);
+
+      new ProjectItem(`${this.type}-projects-list`, projectItem);
     });
   }
 

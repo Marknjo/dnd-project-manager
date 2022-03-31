@@ -210,6 +210,30 @@ class Component {
         this.appRootEl.insertAdjacentElement(this.renderPosition, this.domEl);
     }
 }
+class ProjectItem extends Component {
+    constructor(projectStatusId, projectItem) {
+        super(projectStatusId, 'single-project', Insertable.BeforeEnd, projectItem.id);
+        this.projectStatusId = projectStatusId;
+        this.projectItem = projectItem;
+        this.configDomElement();
+    }
+    get numOfPeopleDescription() {
+        if (this.projectItem.noOfPeople > 1) {
+            return `${this.projectItem.noOfPeople} persons assigned`;
+        }
+        return `Only ${this.projectItem.noOfPeople} person assigned`;
+    }
+    configDomElement() {
+        const titleContainerEl = this.domEl.querySelector('h2');
+        const descriptionContainerEl = this.domEl.querySelector('p');
+        const peopleContainerEl = this.domEl.querySelector('h3');
+        titleContainerEl.innerText = this.projectItem.title;
+        descriptionContainerEl.innerText = this.projectItem.description;
+        peopleContainerEl.innerText = `${this.numOfPeopleDescription}`;
+    }
+    configureStore() { }
+    handleEvents() { }
+}
 class ProjectList extends Component {
     constructor(type = 'active') {
         super('app', 'project-list', Insertable.BeforeEnd, `${type}-projects`);
@@ -221,9 +245,7 @@ class ProjectList extends Component {
         const listEl = document.getElementById(`${this.type}-projects-list`);
         listEl.innerHTML = '';
         this.componentState.forEach(projectItem => {
-            const listItem = document.createElement('li');
-            listItem.textContent = projectItem.title;
-            listEl.appendChild(listItem);
+            new ProjectItem(`${this.type}-projects-list`, projectItem);
         });
     }
     configureStore() {
