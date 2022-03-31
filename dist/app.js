@@ -7,8 +7,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 var ProjectStatus;
 (function (ProjectStatus) {
-    ProjectStatus[ProjectStatus["Active"] = 0] = "Active";
-    ProjectStatus[ProjectStatus["Finished"] = 1] = "Finished";
+    ProjectStatus["Active"] = "active";
+    ProjectStatus["Finished"] = "finished";
 })(ProjectStatus || (ProjectStatus = {}));
 var Insertable;
 (function (Insertable) {
@@ -59,6 +59,13 @@ class ProjectStore extends Store {
         const projectItem = new Project(Math.random().toString(), title, description, noOfPeople, ProjectStatus.Active);
         this.store.push(projectItem);
         this.updateListener();
+    }
+    moveProjectItem(activityId, activityStatus) {
+        const foundActivity = this.store.find(activity => activity.id === activityId);
+        if (foundActivity && foundActivity.status !== activityStatus) {
+            foundActivity.status = activityStatus;
+            this.updateListener();
+        }
     }
 }
 const projectStore = ProjectStore.getInstance();
@@ -275,9 +282,15 @@ class ProjectList extends Component {
         }
     }
     dropEventHandler(event) {
-        console.log(event);
-        const getDraggedItemId = event.dataTransfer.getData('text/plain');
-        console.log(getDraggedItemId);
+        var _a;
+        if (((_a = event.dataTransfer) === null || _a === void 0 ? void 0 : _a.types.at(0)) === 'text/plain') {
+            event.preventDefault();
+            const getDraggedItemId = event.dataTransfer.getData('text/plain');
+            let projectStatus = ProjectStatus.Active;
+            if (ProjectStatus.Finished === this.type)
+                projectStatus = ProjectStatus.Finished;
+            projectStore.moveProjectItem(getDraggedItemId, projectStatus);
+        }
         this.domEl.lastElementChild.classList.remove('droppable');
     }
     renderProjectItem() {

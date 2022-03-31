@@ -10,8 +10,8 @@
 
 /// Define Active and Finished as  an enum
 enum ProjectStatus {
-  Active,
-  Finished,
+  Active = 'active',
+  Finished = 'finished',
 }
 
 /**
@@ -155,6 +155,25 @@ class ProjectStore extends Store<Project, ProjectPayload> {
 
     ///update listeners -> let them know a new object was added to store
     this.updateListener();
+  }
+
+  /**
+   * Enables dragging of the project item from one location to another
+   * @param activityId The selected activity id, used to serch it in the store to update the status
+   * @param activityStatus Which group/sttus the activity belongs of type ProjectStatus
+   */
+  moveProjectItem(activityId: string, activityStatus: ProjectStatus) {
+    // find project item in the store
+    const foundActivity = this.store.find(
+      activity => activity.id === activityId
+    );
+
+    // See if it is available
+    if (foundActivity && foundActivity.status !== activityStatus) {
+      foundActivity.status = activityStatus;
+      // update store and listeners
+      this.updateListener();
+    }
   }
 }
 
@@ -586,7 +605,6 @@ class ProjectItem
 
   @Autobind
   dragEndHandler(event: DragEvent): void {
-    //console.log(event);
     this.domEl.parentElement?.classList.remove('droppable');
   }
 
@@ -652,9 +670,21 @@ class ProjectList
 
   @Autobind
   dropEventHandler(event: DragEvent): void {
-    console.log(event);
-    const getDraggedItemId = event.dataTransfer!.getData('text/plain');
-    console.log(getDraggedItemId);
+    if (event.dataTransfer?.types.at(0) === 'text/plain') {
+      event.preventDefault();
+
+      // Get current dragged element id
+      const getDraggedItemId = event.dataTransfer!.getData('text/plain');
+
+      let projectStatus: ProjectStatus = ProjectStatus.Active;
+
+      if (ProjectStatus.Finished === this.type)
+        projectStatus = ProjectStatus.Finished;
+
+      /// Move project item
+      projectStore.moveProjectItem(getDraggedItemId, projectStatus);
+    }
+
     // Remove UI feedback
     this.domEl.lastElementChild!.classList.remove('droppable');
   }
