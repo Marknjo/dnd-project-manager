@@ -225,11 +225,12 @@ class ProjectItem extends Component {
         return `Only ${this.projectItem.noOfPeople} person assigned`;
     }
     dragStartHandler(event) {
-        console.log('Trggered');
-        console.log(event);
+        event.dataTransfer.setData('text/plain', this.projectItem.id);
+        event.dataTransfer.effectAllowed = 'move';
     }
     dragEndHandler(event) {
-        console.log(event);
+        var _a;
+        (_a = this.domEl.parentElement) === null || _a === void 0 ? void 0 : _a.classList.remove('droppable');
     }
     configDomElement() {
         const titleContainerEl = this.domEl.querySelector('h2');
@@ -245,6 +246,12 @@ class ProjectItem extends Component {
         this.domEl.addEventListener('dragend', this.dragEndHandler);
     }
 }
+__decorate([
+    Autobind
+], ProjectItem.prototype, "dragStartHandler", null);
+__decorate([
+    Autobind
+], ProjectItem.prototype, "dragEndHandler", null);
 class ProjectList extends Component {
     constructor(type = 'active') {
         super('app', 'project-list', Insertable.BeforeEnd, `${type}-projects`);
@@ -253,9 +260,26 @@ class ProjectList extends Component {
         this.configDomElement();
         this.handleEvents();
     }
-    dragEnterHandler(event) { }
-    dragLeaveHandler(event) { }
-    dropEventHandler(event) { }
+    dragOverHandler(event) {
+        var _a;
+        if (((_a = event.dataTransfer) === null || _a === void 0 ? void 0 : _a.types.at(0)) === 'text/plain') {
+            event.preventDefault();
+            this.domEl.lastElementChild.classList.add('droppable');
+        }
+    }
+    dragLeaveHandler(event) {
+        var _a;
+        if (((_a = event.dataTransfer) === null || _a === void 0 ? void 0 : _a.types.at(0)) === 'text/plain') {
+            event.preventDefault();
+            this.domEl.lastElementChild.classList.remove('droppable');
+        }
+    }
+    dropEventHandler(event) {
+        console.log(event);
+        const getDraggedItemId = event.dataTransfer.getData('text/plain');
+        console.log(getDraggedItemId);
+        this.domEl.lastElementChild.classList.remove('droppable');
+    }
     renderProjectItem() {
         const listEl = document.getElementById(`${this.type}-projects-list`);
         listEl.innerHTML = '';
@@ -283,11 +307,20 @@ class ProjectList extends Component {
         this.domEl.querySelector('h2').innerText = `${this.type.toLocaleUpperCase()} PROJECTS`;
     }
     handleEvents() {
-        this.domEl.addEventListener('dragenter', this.dragEnterHandler);
+        this.domEl.addEventListener('dragover', this.dragOverHandler);
         this.domEl.addEventListener('dragleave', this.dragLeaveHandler);
         this.domEl.addEventListener('drop', this.dropEventHandler);
     }
 }
+__decorate([
+    Autobind
+], ProjectList.prototype, "dragOverHandler", null);
+__decorate([
+    Autobind
+], ProjectList.prototype, "dragLeaveHandler", null);
+__decorate([
+    Autobind
+], ProjectList.prototype, "dropEventHandler", null);
 class ProjectInputs extends Component {
     constructor() {
         super('app', 'project-input', Insertable.AfterBegin, 'user-input');

@@ -437,12 +437,12 @@ interface Draggable {
 
 /**
  * Droppable interface  - A contract for the droppend HTMLElement class Must implement
- * @param dragEnterHandler Implements drag enter event of the dropped area
+ * @param dragOverHandler Implements drag enter event of the dropped area
  * @param dragLeaveHandler Implements the drag leave of the dragged parent
  * @param dropEventHandler Implements the drop event of the dropped area
  */
 interface Droppable {
-  dragEnterHandler(event: DragEvent): void;
+  dragOverHandler(event: DragEvent): void;
   dragLeaveHandler(event: DragEvent): void;
   dropEventHandler(event: DragEvent): void;
 }
@@ -578,13 +578,16 @@ class ProjectItem
     this.handleEvents();
   }
 
+  @Autobind
   dragStartHandler(event: DragEvent): void {
-    console.log('Trggered');
-    console.log(event);
+    event.dataTransfer!.setData('text/plain', this.projectItem.id);
+    event.dataTransfer!.effectAllowed = 'move';
   }
 
+  @Autobind
   dragEndHandler(event: DragEvent): void {
-    console.log(event);
+    //console.log(event);
+    this.domEl.parentElement?.classList.remove('droppable');
   }
 
   configDomElement(): void {
@@ -631,11 +634,30 @@ class ProjectList
   }
 
   // AddEffects
-  dragEnterHandler(event: DragEvent): void {}
+  @Autobind
+  dragOverHandler(event: DragEvent): void {
+    if (event.dataTransfer?.types.at(0) === 'text/plain') {
+      event.preventDefault();
+      this.domEl.lastElementChild!.classList.add('droppable');
+    }
+  }
 
-  dragLeaveHandler(event: DragEvent): void {}
+  @Autobind
+  dragLeaveHandler(event: DragEvent): void {
+    if (event.dataTransfer?.types.at(0) === 'text/plain') {
+      event.preventDefault();
+      this.domEl.lastElementChild!.classList.remove('droppable');
+    }
+  }
 
-  dropEventHandler(event: DragEvent): void {}
+  @Autobind
+  dropEventHandler(event: DragEvent): void {
+    console.log(event);
+    const getDraggedItemId = event.dataTransfer!.getData('text/plain');
+    console.log(getDraggedItemId);
+    // Remove UI feedback
+    this.domEl.lastElementChild!.classList.remove('droppable');
+  }
 
   // render
   renderProjectItem() {
@@ -690,7 +712,7 @@ class ProjectList
 
   /// Handle listeners
   handleEvents(): void {
-    this.domEl.addEventListener('dragenter', this.dragEnterHandler);
+    this.domEl.addEventListener('dragover', this.dragOverHandler);
     this.domEl.addEventListener('dragleave', this.dragLeaveHandler);
     this.domEl.addEventListener('drop', this.dropEventHandler);
   }
