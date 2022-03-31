@@ -216,12 +216,20 @@ class ProjectItem extends Component {
         this.projectStatusId = projectStatusId;
         this.projectItem = projectItem;
         this.configDomElement();
+        this.handleEvents();
     }
     get numOfPeopleDescription() {
         if (this.projectItem.noOfPeople > 1) {
             return `${this.projectItem.noOfPeople} persons assigned`;
         }
         return `Only ${this.projectItem.noOfPeople} person assigned`;
+    }
+    dragStartHandler(event) {
+        console.log('Trggered');
+        console.log(event);
+    }
+    dragEndHandler(event) {
+        console.log(event);
     }
     configDomElement() {
         const titleContainerEl = this.domEl.querySelector('h2');
@@ -232,7 +240,10 @@ class ProjectItem extends Component {
         peopleContainerEl.innerText = `${this.numOfPeopleDescription}`;
     }
     configureStore() { }
-    handleEvents() { }
+    handleEvents() {
+        this.domEl.addEventListener('dragstart', this.dragStartHandler);
+        this.domEl.addEventListener('dragend', this.dragEndHandler);
+    }
 }
 class ProjectList extends Component {
     constructor(type = 'active') {

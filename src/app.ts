@@ -426,6 +426,16 @@ const validate = function (validateOptions: Validatable): Messagable[] {
 };
 
 /**
+ * Draggable interface - A contract for the dragged HTMLElement class Must implement
+ * @param dragStartHandler Implements drag start event of the dragged element
+ * @param dragEndHandler Implements the drag end event handling of the dragged element
+ */
+interface Draggable {
+  dragStartHandler(event: DragEvent): void;
+  dragEndHandler(event: DragEvent): void;
+}
+
+/**
  * Abstract component as the base component of UI
  *  - T - generic For App root, type of the element of where to render the template
  *  - U - generic For the template element, the HTMLElement/DomElement type of the element that will be rendered inside the appRoot
@@ -524,7 +534,10 @@ abstract class Component<
 /**
  * Render a single project item
  */
-class ProjectItem extends Component<HTMLUListElement, HTMLLIElement, Project> {
+class ProjectItem
+  extends Component<HTMLUListElement, HTMLLIElement, Project>
+  implements Draggable
+{
   get numOfPeopleDescription() {
     if (this.projectItem.noOfPeople > 1) {
       return `${this.projectItem.noOfPeople} persons assigned`;
@@ -548,6 +561,18 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement, Project> {
 
     // config item
     this.configDomElement();
+
+    // Handler events
+    this.handleEvents();
+  }
+
+  dragStartHandler(event: DragEvent): void {
+    console.log('Trggered');
+    console.log(event);
+  }
+
+  dragEndHandler(event: DragEvent): void {
+    console.log(event);
   }
 
   configDomElement(): void {
@@ -563,7 +588,10 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement, Project> {
 
   configureStore(): void {}
 
-  handleEvents(): void {}
+  handleEvents(): void {
+    this.domEl.addEventListener('dragstart', this.dragStartHandler);
+    this.domEl.addEventListener('dragend', this.dragEndHandler);
+  }
 }
 
 /**
