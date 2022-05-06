@@ -676,13 +676,15 @@ class ProjectList
       // Get current dragged element id
       const getDraggedItemId = event.dataTransfer!.getData('text/plain');
 
-      let projectStatus: ProjectStatus = ProjectStatus.Active;
+      // Set Defaut project status
+      let currentProjectStatus: ProjectStatus = ProjectStatus.Active;
 
+      // Assign Finished project status
       if (ProjectStatus.Finished === this.type)
-        projectStatus = ProjectStatus.Finished;
+        currentProjectStatus = ProjectStatus.Finished;
 
       /// Move project item
-      projectStore.moveProjectItem(getDraggedItemId, projectStatus);
+      projectStore.moveProjectItem(getDraggedItemId, currentProjectStatus);
     }
 
     // Remove UI feedback
