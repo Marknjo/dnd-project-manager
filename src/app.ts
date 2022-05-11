@@ -2,3 +2,60 @@
 import './app.css';
 
 // App Code
+
+// @TARGETS: General App Overview
+// @TODO: #01. Add Project Form To the UI
+// @TODO: #02. Add Project Lists to the UI (Active && Finished)
+// @TODO: #03. Add A single Project to the screen
+// @TODO: #04. Enable Drag and Drop of the Activities from one project Status i.e. active to finished and Vice Versa
+// @TODO: #05. Refactor code to organized Folders
+// @TODO: #06. Validate Project UI
+// @TODO: #07. Manage Project State
+// @TODO: #08. Refactor Templating to Component - With State and Without State
+
+/// @TARGETS: Task #01. Add Project Form To the UI
+// @TODO: #01. Define HTML elments to grab, rootElement, templateElement, formElement
+// @TODO: #02. Render the formElement to the UI
+// @TODO: #03. Handle Form data submit, with validations included
+// @TODO: #04. Handle SideEffects, events
+
+class ActivityForm {
+  /** The root element */
+  protected rootEl: HTMLDivElement;
+
+  /** The Form Element */
+  protected templateEl: HTMLTemplateElement;
+
+  /** The Activity Form Template Element */
+  protected componentEl: HTMLFormElement;
+
+  /** Description Inputs FormData */
+  /** People Inputs FormData */
+
+  // Constructor
+  constructor() {
+    this.rootEl = document.getElementById('root')! as HTMLDivElement;
+    this.templateEl = document.getElementById(
+      'project-activity-form'
+    )! as HTMLTemplateElement;
+
+    // Get the form component form the template elementt
+    const formComponent = document.importNode(this.templateEl.content, true);
+    this.componentEl = formComponent.firstElementChild as HTMLFormElement;
+
+    // Add id to the form element
+    this.componentEl.id = 'activity-form';
+
+    // Add initial Methods here i.e. render, configureEvents
+    // -> Render Activity form element to the UI
+    this.render();
+  }
+
+  /** Add the activity form to the UI */
+  private render() {
+    this.rootEl.insertAdjacentElement('afterbegin', this.componentEl);
+  }
+}
+
+/// Initialize activity Form
+new ActivityForm();
