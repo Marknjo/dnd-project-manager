@@ -19,6 +19,30 @@ import './app.css';
 // @TODO: #03. Handle Form data submit, with validations included
 // @TODO: #04. Handle SideEffects, events
 
+/**
+ * Enable autodind feature to the events handlers
+ */
+const Autobind = (_: any, _1: string, descriptor: PropertyDescriptor) => {
+  // Assign Default method
+  const originalMethod = descriptor.value;
+
+  // Autobind
+  const adjDescriptor: PropertyDescriptor = {
+    configurable: true,
+    get() {
+      const boundFn = originalMethod.bind(this);
+
+      return boundFn;
+    },
+  };
+
+  // Return new method
+  return adjDescriptor;
+};
+
+/**
+ * Handle Adding Activities Form to UI
+ */
 class ActivityForm {
   /** The root element */
   protected rootEl: HTMLDivElement;
@@ -66,10 +90,9 @@ class ActivityForm {
   // Private Methods
 
   /** Submit project task */
+  @Autobind
   private submitProjectActivityHandler(event: Event) {
     event.preventDefault();
-
-    console.log(this);
 
     // Get form data
     const formData = new FormData(this.componentEl);
