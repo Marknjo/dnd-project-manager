@@ -29,8 +29,15 @@ class ActivityForm {
   /** The Activity Form Template Element */
   protected componentEl: HTMLFormElement;
 
+  /// FORM INPUTS
+  /** Title Inputs FormData */
+  private activityTitle: FormDataEntryValue = '';
+
   /** Description Inputs FormData */
+  private activityDescription: FormDataEntryValue = '';
+
   /** People Inputs FormData */
+  private activityPeople: FormDataEntryValue = '';
 
   // Constructor
   constructor() {
@@ -49,6 +56,46 @@ class ActivityForm {
     // Add initial Methods here i.e. render, configureEvents
     // -> Render Activity form element to the UI
     this.render();
+
+    // -> Handle Component Events
+    this.eventsHandler();
+  }
+
+  // Public Methods
+
+  // Private Methods
+
+  /** Submit project task */
+  private submitProjectActivityHandler(event: Event) {
+    event.preventDefault();
+
+    console.log(this);
+
+    // Get form data
+    const formData = new FormData(this.componentEl);
+
+    // Assign values to the
+    this.activityTitle = formData.get('title') as FormDataEntryValue;
+    this.activityDescription = formData.get(
+      'description'
+    ) as FormDataEntryValue;
+    this.activityPeople = formData.get('people') as FormDataEntryValue;
+
+    // Validate Data
+    console.table({
+      title: this.activityTitle,
+      description: this.activityDescription,
+      people: this.activityPeople,
+    });
+
+    // Update project store with the data
+  }
+
+  private eventsHandler() {
+    this.componentEl.addEventListener(
+      'submit',
+      this.submitProjectActivityHandler
+    );
   }
 
   /** Add the activity form to the UI */
