@@ -41,6 +41,136 @@ const Autobind = (_: any, _1: string, descriptor: PropertyDescriptor) => {
 };
 
 /**
+ * Interface to validate input field
+ */
+interface Validatable {
+  field: string;
+  value: string | number;
+  trim?: boolean;
+  message?: string;
+  require?: boolean;
+  min?: number;
+  max?: number;
+  minLength?: number;
+  maxLength?: number;
+}
+
+interface ValidatableMessages {
+  isValid: boolean;
+  message: string;
+  field: string;
+}
+
+/**
+ * Validate imput fields
+ */
+const validate = (inputFieldOptions: Validatable): ValidatableMessages[] => {
+  // set defaults
+  let isValid = false;
+  const validations: ValidatableMessages[] = [];
+
+  // initialize input field options
+  const { field, value, require, trim, min, max, minLength, maxLength } =
+    inputFieldOptions;
+
+  /**
+   * Construc Validation Message
+   */
+  const validationHandler = (message: string, isValid: boolean) => {
+    if (!isValid) {
+      validations.push({
+        message,
+        isValid,
+        field,
+      });
+    } else {
+      validations.push({
+        isValid: true,
+        field,
+        message: '',
+      });
+    }
+  };
+
+  const capitalize = (word: string) => {
+    return (
+      word.charAt(0).toLocaleUpperCase() +
+      word.toLocaleLowerCase().split('').slice(1).join('')
+    );
+  };
+
+  /// Run Validations
+  /// 1). Trim if field if provided
+  let trimmedValue = '';
+  if (trim) {
+    trimmedValue = `${value}`.trim();
+  }
+
+  /// 2). Validate Required field
+  if (require) {
+    isValid = trim ? trimmedValue !== '' : value !== '';
+
+    // Construct validation message
+    const message = `${capitalize(
+      field
+    )} field empty. Please provide it before you proceed.`;
+
+    validationHandler(message, isValid);
+  }
+
+  /// 3). Validate Min --> Number
+  if (min != null && typeof value === 'number') {
+    isValid = trim ? parseInt(trimmedValue, 10) >= min : value >= min;
+
+    // Construct validation message
+    const message = `${capitalize(
+      field
+    )} value must be above or equal to ${min}.`;
+    validationHandler(message, isValid);
+  }
+
+  /// 4). Validate Max --> Number
+  if (max != null && typeof value === 'number') {
+    isValid = trim ? parseInt(trimmedValue, 10) <= max : value <= max;
+
+    // Construct validation message
+    const message = `${capitalize(
+      field
+    )} value must be below or equal to ${min}.`;
+    validationHandler(message, isValid);
+  }
+
+  /// 5). Validate Min Length
+  if (minLength != null && typeof value === 'string') {
+    isValid = trim
+      ? trimmedValue.length >= minLength
+      : value.length >= minLength;
+
+    // Construct validation message
+    const message = `Total number of characters in the ${capitalize(
+      field
+    )} field must be above or equal to ${minLength}.`;
+    validationHandler(message, isValid);
+  }
+
+  /// 6). Validate Max Length
+  if (maxLength != null && typeof value === 'string') {
+    isValid = trim
+      ? trimmedValue.length <= maxLength
+      : value.length <= maxLength;
+
+    // Construct validation message
+    const message = `Total number of characters in the ${capitalize(
+      field
+    )} field must be below or equal to ${minLength}.`;
+    validationHandler(message, isValid);
+  }
+
+  // Return either true or array of validation results
+  return validations;
+};
+
+/**
  * Handle Adding Activities Form to UI
  */
 class ActivityForm {
@@ -117,6 +247,87 @@ class ActivityForm {
     this.activityPeople = formData.get('people') as FormDataEntryValue;
   }
 
+  /**
+   *
+   * Validate Activity Fields
+   */
+  private validateActivityFields() {
+    const title = this.activityTitle.toString();
+    const description = this.activityDescription.toString();
+    const people = +this.activityPeople.toString();
+
+    // Field errors container
+    const fieldErrorsMessages: string[] = [];
+
+    // Validate Title
+    const validateTitle = validate({
+      field: 'title',
+      value: title,
+      require: true,
+      trim: true,
+      minLength: 5,
+    });
+
+    const titleIsValid = validateTitle.filter(
+      validation => !validation.isValid
+    );
+
+    if (titleIsValid.length > 0) {
+      titleIsValid.forEach(titleErrorObj =>
+        fieldErrorsMessages.push(titleErrorObj.message)
+      );
+    }
+
+    /// Validate Description
+    const validateDescription = validate({
+      field: 'description',
+      value: description,
+      require: true,
+      trim: true,
+      minLength: 50,
+      maxLength: 1000,
+    });
+
+    const descriptionIsValid = validateDescription.filter(
+      validation => !validation.isValid
+    );
+
+    if (descriptionIsValid.length > 0) {
+      descriptionIsValid.forEach(titleErrorObj =>
+        fieldErrorsMessages.push(titleErrorObj.message)
+      );
+    }
+
+    /// Validate People
+    const validatePeople = validate({
+      field: 'people',
+      value: people,
+      require: true,
+      min: 1,
+      max: 10,
+    });
+
+    const peopleIsValid = validatePeople.filter(
+      validation => !validation.isValid
+    );
+
+    if (peopleIsValid.length > 0) {
+      peopleIsValid.forEach(titleErrorObj =>
+        fieldErrorsMessages.push(titleErrorObj.message)
+      );
+    }
+
+    /// Show validation messages
+    if (fieldErrorsMessages.length > 0) {
+      const messages = fieldErrorsMessages.join('\n');
+      alert(`Validation Errors\n\n${messages}`);
+
+      return;
+    }
+
+    return [title, description, people];
+  }
+
   /** Submit project task */
   @Autobind
   private submitProjectActivityHandler(event: Event) {
@@ -126,14 +337,22 @@ class ActivityForm {
     this.getActivityFormInputs();
 
     // Validate Data
-    console.table({
-      title: this.activityTitle,
-      description: this.activityDescription,
-      people: this.activityPeople,
-    });
+    /// Handle Validations
+    const validations = this.validateActivityFields();
 
-    // Update project store with the data
-    this.clearFormInputsOnSuccess();
+    if (validations) {
+      const [title, description, people] = validations;
+
+      // Submit to store
+      console.table({
+        title,
+        description,
+        people,
+      });
+
+      // Update project store with the data
+      this.clearFormInputsOnSuccess();
+    }
   }
 
   private eventsHandler() {
