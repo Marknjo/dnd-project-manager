@@ -92,6 +92,15 @@ class ActivityForm {
   // Public Methods
 
   // Private Methods
+  /**
+   * Clear form input if the activity/task is added successfully
+   */
+  private clearFormInputsOnSuccess() {
+    this.componentEl.description.value = '';
+    const title = this.componentEl.querySelector('#title') as HTMLInputElement;
+    title.value = '';
+    this.componentEl.people.value = '';
+  }
 
   /**
    * Get submitted Activity/task and assign to activity form inputs properties
@@ -124,6 +133,7 @@ class ActivityForm {
     });
 
     // Update project store with the data
+    this.clearFormInputsOnSuccess();
   }
 
   private eventsHandler() {
