@@ -71,8 +71,12 @@ class ActivityForm {
     )! as HTMLTemplateElement;
 
     // Get the form component form the template elementt
-    const formComponent = document.importNode(this.templateEl.content, true);
-    this.componentEl = formComponent.firstElementChild as HTMLFormElement;
+    const formComponentTemplate = document.importNode(
+      this.templateEl.content,
+      true
+    );
+    this.componentEl =
+      formComponentTemplate.firstElementChild as HTMLFormElement;
 
     // Add id to the form element
     this.componentEl.id = 'activity-form';
@@ -89,11 +93,10 @@ class ActivityForm {
 
   // Private Methods
 
-  /** Submit project task */
-  @Autobind
-  private submitProjectActivityHandler(event: Event) {
-    event.preventDefault();
-
+  /**
+   * Get submitted Activity/task and assign to activity form inputs properties
+   */
+  private getActivityFormInputs() {
     // Get form data
     const formData = new FormData(this.componentEl);
 
@@ -103,6 +106,15 @@ class ActivityForm {
       'description'
     ) as FormDataEntryValue;
     this.activityPeople = formData.get('people') as FormDataEntryValue;
+  }
+
+  /** Submit project task */
+  @Autobind
+  private submitProjectActivityHandler(event: Event) {
+    event.preventDefault();
+
+    // Get form data
+    this.getActivityFormInputs();
 
     // Validate Data
     console.table({
