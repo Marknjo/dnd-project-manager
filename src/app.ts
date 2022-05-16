@@ -61,6 +61,19 @@ interface ValidatableMessages {
   field: string;
 }
 
+/// Utility FUnctions
+/**
+ * Capitalizer
+ * @param word Word to capitalize
+ * @returns Capitalized word
+ */
+const capitalizer = (word: string) => {
+  return (
+    word.charAt(0).toLocaleUpperCase() +
+    word.toLocaleLowerCase().split('').slice(1).join('')
+  );
+};
+
 /**
  * Validate imput fields
  */
@@ -92,13 +105,6 @@ const validate = (inputFieldOptions: Validatable): ValidatableMessages[] => {
     }
   };
 
-  const capitalize = (word: string) => {
-    return (
-      word.charAt(0).toLocaleUpperCase() +
-      word.toLocaleLowerCase().split('').slice(1).join('')
-    );
-  };
-
   /// Run Validations
   /// 1). Trim if field if provided
   let trimmedValue = '';
@@ -111,7 +117,7 @@ const validate = (inputFieldOptions: Validatable): ValidatableMessages[] => {
     isValid = trim ? trimmedValue !== '' : value !== '';
 
     // Construct validation message
-    const message = `${capitalize(
+    const message = `${capitalizer(
       field
     )} field empty. Please provide it before you proceed.`;
 
@@ -123,7 +129,7 @@ const validate = (inputFieldOptions: Validatable): ValidatableMessages[] => {
     isValid = trim ? parseInt(trimmedValue, 10) >= min : value >= min;
 
     // Construct validation message
-    const message = `${capitalize(
+    const message = `${capitalizer(
       field
     )} value must be above or equal to ${min}.`;
     validationHandler(message, isValid);
@@ -134,7 +140,7 @@ const validate = (inputFieldOptions: Validatable): ValidatableMessages[] => {
     isValid = trim ? parseInt(trimmedValue, 10) <= max : value <= max;
 
     // Construct validation message
-    const message = `${capitalize(
+    const message = `${capitalizer(
       field
     )} value must be below or equal to ${min}.`;
     validationHandler(message, isValid);
@@ -147,7 +153,7 @@ const validate = (inputFieldOptions: Validatable): ValidatableMessages[] => {
       : value.length >= minLength;
 
     // Construct validation message
-    const message = `Total number of characters in the ${capitalize(
+    const message = `Total number of characters in the ${capitalizer(
       field
     )} field must be above or equal to ${minLength}.`;
     validationHandler(message, isValid);
@@ -160,14 +166,15 @@ const validate = (inputFieldOptions: Validatable): ValidatableMessages[] => {
       : value.length <= maxLength;
 
     // Construct validation message
-    const message = `Total number of characters in the ${capitalize(
+    const message = `Total number of characters in the ${capitalizer(
       field
     )} field must be below or equal to ${minLength}.`;
     validationHandler(message, isValid);
   }
 
   // Return either true or array of validation results
-  return validations;
+  return validations.filter(field => !field.isValid);
+  //return validations;
 };
 
 /**
@@ -247,6 +254,18 @@ class ActivityForm {
     this.activityPeople = formData.get('people') as FormDataEntryValue;
   }
 
+  private buildValidationMessage(validation: ValidatableMessages[]): string {
+    let output = '';
+
+    validation.forEach(
+      titleErrorObj => (output += `${titleErrorObj.message}\n`)
+    );
+
+    const title = validation[0].field;
+
+    return `${capitalizer(title)} Field Errors:\n${output}\n\n`;
+  }
+
   /**
    *
    * Validate Activity Fields
@@ -256,9 +275,6 @@ class ActivityForm {
     const description = this.activityDescription.toString();
     const people = +this.activityPeople.toString();
 
-    // Field errors container
-    const fieldErrorsMessages: string[] = [];
-
     // Validate Title
     const validateTitle = validate({
       field: 'title',
@@ -267,16 +283,6 @@ class ActivityForm {
       trim: true,
       minLength: 5,
     });
-
-    const titleIsValid = validateTitle.filter(
-      validation => !validation.isValid
-    );
-
-    if (titleIsValid.length > 0) {
-      titleIsValid.forEach(titleErrorObj =>
-        fieldErrorsMessages.push(titleErrorObj.message)
-      );
-    }
 
     /// Validate Description
     const validateDescription = validate({
@@ -288,16 +294,6 @@ class ActivityForm {
       maxLength: 1000,
     });
 
-    const descriptionIsValid = validateDescription.filter(
-      validation => !validation.isValid
-    );
-
-    if (descriptionIsValid.length > 0) {
-      descriptionIsValid.forEach(titleErrorObj =>
-        fieldErrorsMessages.push(titleErrorObj.message)
-      );
-    }
-
     /// Validate People
     const validatePeople = validate({
       field: 'people',
@@ -307,20 +303,33 @@ class ActivityForm {
       max: 10,
     });
 
-    const peopleIsValid = validatePeople.filter(
-      validation => !validation.isValid
-    );
+    let errorMessages = '';
 
-    if (peopleIsValid.length > 0) {
-      peopleIsValid.forEach(titleErrorObj =>
-        fieldErrorsMessages.push(titleErrorObj.message)
-      );
+    if (
+      validateTitle.length > 0 ||
+      validatePeople.length > 0 ||
+      validatePeople.length > 0
+    ) {
+      // Build Ttile Error Message
+      if (validateTitle.length > 0) {
+        errorMessages += this.buildValidationMessage(validateTitle);
+      }
+
+      // Build Description Error Message
+      if (validateDescription.length > 0) {
+        errorMessages += this.buildValidationMessage(validateDescription);
+      }
+
+      // Build People Validation Error Message
+      if (validatePeople.length > 0) {
+        errorMessages += this.buildValidationMessage(validatePeople);
+      }
     }
 
     /// Show validation messages
-    if (fieldErrorsMessages.length > 0) {
-      const messages = fieldErrorsMessages.join('\n');
-      alert(`Validation Errors\n\n${messages}`);
+    // if (fieldErrorsMessages.length > 0) {
+    if (errorMessages) {
+      alert(`Fix the following validation errors\n${errorMessages}`);
 
       return;
     }
