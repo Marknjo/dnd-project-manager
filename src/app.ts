@@ -4,7 +4,7 @@ import './app.css';
 // App Code
 
 // @TARGETS: General App Overview
-// @TODO: #01. Add Project Form To the UI
+// @DONE: #01. Add Project Form To the UI
 // @TODO: #02. Add Project Lists to the UI (Active && Finished)
 // @TODO: #03. Add A single Project to the screen
 // @TODO: #04. Enable Drag and Drop of the Activities from one project Status i.e. active to finished and Vice Versa
@@ -14,10 +14,22 @@ import './app.css';
 // @TODO: #08. Refactor Templating to Component - With State and Without State
 
 /// @TARGETS: Task #01. Add Project Form To the UI
-// @TODO: #01. Define HTML elments to grab, rootElement, templateElement, formElement
-// @TODO: #02. Render the formElement to the UI
-// @TODO: #03. Handle Form data submit, with validations included
-// @TODO: #04. Handle SideEffects, events
+// @DONE: #01. Define HTML elments to grab, rootElement, templateElement, formElement
+// @DONE: #02. Render the formElement to the UI
+// @DONE: #03. Handle Form data submit, with validations included
+// @DONE: #04. Handle SideEffects, events
+
+/// Enums insertion position
+
+/**
+ * Html Element Insert Position
+ */
+enum InsertPosition {
+  AfterBegin = 'afterbegin',
+  AfterEnd = 'afterend',
+  BeforeBegin = 'beforebegin',
+  BeforeEnd = 'beforeend',
+}
 
 /**
  * Enable autodind feature to the events handlers
@@ -61,7 +73,7 @@ interface ValidatableMessages {
   field: string;
 }
 
-/// Utility FUnctions
+/// Utility Functions
 /**
  * Capitalizer
  * @param word Word to capitalize
@@ -178,18 +190,61 @@ const validate = (inputFieldOptions: Validatable): ValidatableMessages[] => {
 };
 
 /**
+ * Base Component Element/Template for all New Components
+ */
+abstract class Component<T extends HTMLElement, U extends HTMLElement> {
+  /* Temaplate Element */
+  templateEl: HTMLTemplateElement;
+
+  /* Root Element Holder */
+  rootEl: T;
+
+  /* Element from the template */
+  htmlEl: U;
+
+  /* Component Constructor */
+  constructor(
+    templateElId: string,
+    rootElId: string,
+    public htmlElId: string,
+    public insert: InsertPosition
+  ) {
+    this.templateEl = document.getElementById(
+      templateElId
+    )! as HTMLTemplateElement;
+
+    this.rootEl = document.getElementById(rootElId)! as T;
+
+    // Get the form component form the template elementt
+    const componentTemplate = document.importNode(
+      this.templateEl.content,
+      true
+    );
+
+    this.htmlEl = componentTemplate.firstElementChild as U;
+
+    // Add id to the form element
+    this.htmlEl.id = htmlElId;
+
+    // Render the Element to the UI
+    this.render();
+  }
+
+  /** Add the element to the UI */
+  private render() {
+    this.rootEl.insertAdjacentElement(this.insert, this.htmlEl);
+  }
+
+  /// Other Enforceable Methods
+  configureEl(): void {}
+
+  addEvents(): void {}
+}
+
+/**
  * Handle Adding Activities Form to UI
  */
-class ActivityForm {
-  /** The root element */
-  protected rootEl: HTMLDivElement;
-
-  /** The Form Element */
-  protected templateEl: HTMLTemplateElement;
-
-  /** The Activity Form Template Element */
-  protected componentEl: HTMLFormElement;
-
+class ActivityForm extends Component<HTMLDivElement, HTMLFormElement> {
   /// FORM INPUTS
   /** Title Inputs FormData */
   private activityTitle: FormDataEntryValue = '';
@@ -202,25 +257,12 @@ class ActivityForm {
 
   // Constructor
   constructor() {
-    this.rootEl = document.getElementById('root')! as HTMLDivElement;
-    this.templateEl = document.getElementById(
-      'project-activity-form'
-    )! as HTMLTemplateElement;
-
-    // Get the form component form the template elementt
-    const formComponentTemplate = document.importNode(
-      this.templateEl.content,
-      true
+    super(
+      'project-activity-form',
+      'root',
+      'activity-form',
+      InsertPosition.AfterBegin
     );
-    this.componentEl =
-      formComponentTemplate.firstElementChild as HTMLFormElement;
-
-    // Add id to the form element
-    this.componentEl.id = 'activity-form';
-
-    // Add initial Methods here i.e. render, configureEvents
-    // -> Render Activity form element to the UI
-    this.render();
 
     // -> Handle Component Events
     this.eventsHandler();
@@ -233,10 +275,14 @@ class ActivityForm {
    * Clear form input if the activity/task is added successfully
    */
   private clearFormInputsOnSuccess() {
-    this.componentEl.description.value = '';
-    const title = this.componentEl.querySelector('#title') as HTMLInputElement;
+    const title = this.htmlEl.querySelector('#title') as HTMLInputElement;
+    const description = this.htmlEl.querySelector(
+      '#description'
+    ) as HTMLInputElement;
+    const people = this.htmlEl.querySelector('#people') as HTMLInputElement;
+    description.value = '';
     title.value = '';
-    this.componentEl.people.value = '';
+    people.value = '';
   }
 
   /**
@@ -244,7 +290,7 @@ class ActivityForm {
    */
   private getActivityFormInputs() {
     // Get form data
-    const formData = new FormData(this.componentEl);
+    const formData = new FormData(this.htmlEl);
 
     // Assign values to the
     this.activityTitle = formData.get('title') as FormDataEntryValue;
@@ -254,6 +300,11 @@ class ActivityForm {
     this.activityPeople = formData.get('people') as FormDataEntryValue;
   }
 
+  /**
+   * Gets a validation object, and construct messages for fields with errors.
+   * @param validation Validation object containing - field name, error message, and whether the field is valid or not
+   * @returns Constructed validation message.
+   */
   private buildValidationMessage(validation: ValidatableMessages[]): string {
     let output = '';
 
@@ -365,15 +416,7 @@ class ActivityForm {
   }
 
   private eventsHandler() {
-    this.componentEl.addEventListener(
-      'submit',
-      this.submitProjectActivityHandler
-    );
-  }
-
-  /** Add the activity form to the UI */
-  private render() {
-    this.rootEl.insertAdjacentElement('afterbegin', this.componentEl);
+    this.htmlEl.addEventListener('submit', this.submitProjectActivityHandler);
   }
 }
 
