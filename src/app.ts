@@ -21,6 +21,10 @@ import './app.css';
 
 /// Enums insertion position
 
+/** ------------------------------------------------- */
+//                    ENUMS TYPES                     //
+/** ------------------------------------------------- */
+
 /**
  * Html Element Insert Position
  */
@@ -30,6 +34,38 @@ enum InsertPosition {
   BeforeBegin = 'beforebegin',
   BeforeEnd = 'beforeend',
 }
+
+/** ------------------------------------------------- */
+//                  INTERFACE TYPES                   //
+/** ------------------------------------------------- */
+
+/**
+ * Interface to validate input field
+ */
+interface Validatable {
+  field: string;
+  value: string | number;
+  trim?: boolean;
+  message?: string;
+  require?: boolean;
+  min?: number;
+  max?: number;
+  minLength?: number;
+  maxLength?: number;
+}
+
+/**
+ * Validation Message Interface
+ */
+interface ValidatableMessages {
+  isValid: boolean;
+  message: string;
+  field: string;
+}
+
+/** ------------------------------------------------- */
+//                DECORATORS SECTION                  //
+/** ------------------------------------------------- */
 
 /**
  * Enable autodind feature to the events handlers
@@ -52,26 +88,14 @@ const Autobind = (_: any, _1: string, descriptor: PropertyDescriptor) => {
   return adjDescriptor;
 };
 
-/**
- * Interface to validate input field
- */
-interface Validatable {
-  field: string;
-  value: string | number;
-  trim?: boolean;
-  message?: string;
-  require?: boolean;
-  min?: number;
-  max?: number;
-  minLength?: number;
-  maxLength?: number;
-}
+/** ------------------------------------------------- */
+//               PROJECT STORE SECTION                //
+/** ------------------------------------------------- */
+// @TODO: Implement Project Store
 
-interface ValidatableMessages {
-  isValid: boolean;
-  message: string;
-  field: string;
-}
+/** ------------------------------------------------- */
+//               VALIDATIONS SECTION                  //
+/** ------------------------------------------------- */
 
 /// Utility Functions
 /**
@@ -188,6 +212,10 @@ const validate = (inputFieldOptions: Validatable): ValidatableMessages[] => {
   return validations.filter(field => !field.isValid);
   //return validations;
 };
+
+/** ------------------------------------------------- */
+//              HTML COMPONENTS SECTION               //
+/** ------------------------------------------------- */
 
 /**
  * Base Component Element/Template for all New Components
