@@ -35,6 +35,16 @@ enum InsertPosition {
   BeforeEnd = 'beforeend',
 }
 
+/**
+ * Defines Different project stages status
+ */
+enum ProjectStageStatus {
+  Active = 'active',
+  InProgress = 'in-progress',
+  Finished = 'finished',
+  Stalled = 'stalled',
+}
+
 /** ------------------------------------------------- */
 //                  INTERFACE TYPES                   //
 /** ------------------------------------------------- */
@@ -270,6 +280,44 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 }
 
 /**
+ * Implements Adding Different Project Stages In the UI
+ */
+class ProjectStage extends Component<HTMLDivElement, HTMLElement> {
+  /**
+   * Tracks this Project stage activities
+   */
+  activityTracker: any[] = [];
+
+  // Define constructor
+  constructor(public projectStage: ProjectStageStatus) {
+    super(
+      'project-stage',
+      'root',
+      `projects-${projectStage}`,
+      InsertPosition.AfterEnd
+    );
+
+    /// Listent to state changes
+
+    /// Confifure element
+    this.configureEl();
+
+    /// Listen to events
+    this.addEvents();
+  }
+
+  // Listen to effects
+  addEvents(): void {}
+
+  // Configure Component
+  configureEl(): void {
+    const statusTitle = this.projectStage.split('-').join(' ');
+
+    this.htmlEl.firstElementChild!.firstElementChild!.innerHTML = statusTitle;
+  }
+}
+
+/**
  * Handle Adding Activities Form to UI
  */
 class ActivityForm extends Component<HTMLDivElement, HTMLFormElement> {
@@ -450,3 +498,9 @@ class ActivityForm extends Component<HTMLDivElement, HTMLFormElement> {
 
 /// Initialize activity Form
 new ActivityForm();
+
+/// Add project Status Stages to the UI
+new ProjectStage(ProjectStageStatus.Stalled);
+new ProjectStage(ProjectStageStatus.Finished);
+new ProjectStage(ProjectStageStatus.InProgress);
+new ProjectStage(ProjectStageStatus.Active);

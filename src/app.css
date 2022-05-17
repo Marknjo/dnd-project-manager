@@ -68,12 +68,28 @@ button:active {
   align-items: center;
 }
 
-#finished-projects {
+#projects-finished {
   border-color: #0044ff;
 }
 
-#finished-projects header {
+#projects-finished header {
   background: #0044ff;
+}
+
+#projects-stalled {
+  border-color: #3f424d;
+}
+
+#projects-stalled header {
+  background: #3f424d;
+}
+
+#projects-in-progress {
+  border-color: #00ff0d;
+}
+
+#projects-in-progress header {
+  background: #00ff0d;
 }
 
 .projects h2 {
@@ -99,8 +115,20 @@ button:active {
   margin: 0.5rem 0;
 }
 
-#finished-projects li h2 {
+.projects-stastus-title {
+  text-transform: uppercase;
+}
+
+#projects-finished li h2 {
   color: #0044ff;
+}
+
+#projects-finished li h2 {
+  color: #3f424d;
+}
+
+#projects-in-progress li h2 {
+  color: #00ff0d;
 }
 
 .projects li h3 {
@@ -116,7 +144,7 @@ button:active {
   background: #ffe3ee;
 }
 
-#finished-projects .droppable {
+#projects-finished .droppable {
   background: #d6e1ff;
 }
 
