@@ -1,6 +1,8 @@
 // Import CSS
 import './app.css';
 
+import { v4 as uuidV4 } from 'uuid';
+
 // App Code
 
 // @TARGETS: General App Overview
@@ -73,6 +75,15 @@ interface ValidatableMessages {
   field: string;
 }
 
+/**
+ * Describes activity for submitted data
+ */
+interface ProjectPayload {
+  title: string;
+  description: string;
+  noOfPeople: number;
+}
+
 /** ------------------------------------------------- */
 //                DECORATORS SECTION                  //
 /** ------------------------------------------------- */
@@ -101,7 +112,112 @@ const Autobind = (_: any, _1: string, descriptor: PropertyDescriptor) => {
 /** ------------------------------------------------- */
 //               PROJECT STORE SECTION                //
 /** ------------------------------------------------- */
-// @TODO: Implement Project Store
+
+// @TARGETS: Implement Project Store
+// @TODO: #01: Create a class that defines project store
+// @TODO: #02: The class should have listeners container
+// @TODO: #03: The class should implement store for tracking submitted form data
+// @TODO: #04: The class should be able to add actions creators to the lister container
+// @TODO: #05: The Class should update store (Read, Remove, Delete etc)
+// @TODO: #06: The class should use sigleton pattern to maintain data
+// @TODO: #07: Refactor Project Class for a universal reusable store
+// @TODO: #08: Define another class that defines the Project Fields (title, description, people, stage/status)
+
+/**
+ * Define Project Structure
+ */
+class Project {
+  constructor(
+    public id: string,
+    public title: string,
+    public description: string,
+    public noOfPeople: number,
+    public projectStage: ProjectStageStatus
+  ) {}
+}
+
+/**
+ * Define Project Listener Function
+ */
+type Listener = (payload: Project[]) => void;
+
+class ProjectStore {
+  /**
+   * Tracts Submitted project items
+   */
+  store: Project[] = [];
+
+  /**
+   * Tracks Submitted action creators
+   */
+  listeners: Listener[] = [];
+
+  /**
+   * Project Store Instance handle
+   */
+  private static instance: ProjectStore;
+
+  // Get this instance
+  static getInstance() {
+    if (this.instance) {
+      return this.instance;
+    }
+
+    this.instance = new ProjectStore();
+
+    return this.instance;
+  }
+
+  // Get Store content
+  get getStore() {
+    return this.store;
+  }
+
+  // Constructor
+  private constructor() {}
+
+  /// Define methods
+
+  /**
+   *
+   * @param listenerFn A function that triggers and action
+   */
+  dispatchListener(listenerFn: Listener) {
+    this.listeners.push(listenerFn);
+  }
+
+  /**
+   * Add Payload to the Project
+   */
+  dispatchPayload(payload: ProjectPayload) {
+    // Push the content to the store
+    const { title, description, noOfPeople } = payload;
+
+    const newProjectActivity = new Project(
+      uuidV4(),
+      title,
+      description,
+      noOfPeople,
+      ProjectStageStatus.Active
+    );
+
+    this.store.push(newProjectActivity);
+
+    // Update listeners that the store has been updated
+    this.updateListeners();
+  }
+
+  /**
+   * Project Listener
+   */
+  protected updateListeners() {
+    this.listeners.forEach(listenerFn => {
+      return listenerFn(this.store.slice());
+    });
+  }
+}
+
+const projectStore = ProjectStore.getInstance();
 
 /** ------------------------------------------------- */
 //               VALIDATIONS SECTION                  //
@@ -480,10 +596,10 @@ class ActivityForm extends Component<HTMLDivElement, HTMLFormElement> {
       const [title, description, people] = validations;
 
       // Submit to store
-      console.table({
-        title,
-        description,
-        people,
+      projectStore.dispatchPayload({
+        title: `${title}`,
+        description: `${description}`,
+        noOfPeople: +people,
       });
 
       // Update project store with the data
