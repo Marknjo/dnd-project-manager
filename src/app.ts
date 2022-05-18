@@ -369,6 +369,8 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 
     this.rootEl = document.getElementById(rootElId)! as T;
 
+    console.log({ rootElId });
+
     // Get the form component form the template elementt
     const componentTemplate = document.importNode(
       this.templateEl.content,
@@ -396,13 +398,61 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 }
 
 /**
+ * Project Activity Component
+ */
+class ProjectActivity extends Component<HTMLDivElement, HTMLUListElement> {
+  /**
+   *
+   */
+  private get getDescribePeople() {
+    if (this.activityState.noOfPeople === 1) {
+      return `${this.activityState.noOfPeople} person assigned.`;
+    }
+
+    return `${this.activityState.noOfPeople} persons assigned.`;
+  }
+
+  /**
+   *
+   * @param rootId Id of the stage this component is called i.e. active, in-progress etc
+   * @param activityState Activity items id, title, description, no of people etc;
+   */
+  constructor(rootId: string, private activityState: Project) {
+    super(
+      'project-activity',
+      rootId,
+      activityState.id,
+      InsertPosition.AfterBegin
+    );
+
+    // Get the project stage ID
+    this.configureEl();
+  }
+
+  addEvents(): void {}
+
+  /**
+   * Configure the html element
+   */
+  configureEl(): void {
+    this.htmlEl.id = this.activityState.id;
+    this.htmlEl.firstElementChild!.innerHTML = this.activityState.title;
+    this.htmlEl.firstElementChild!.nextElementSibling!.innerHTML =
+      this.activityState.description;
+    this.htmlEl.lastElementChild!.innerHTML = this.getDescribePeople;
+
+    [];
+  }
+}
+
+/**
  * Implements Adding Different Project Stages In the UI
  */
 class ProjectStage extends Component<HTMLDivElement, HTMLElement> {
   /**
    * Tracks this Project stage activities
    */
-  activityTracker: any[] = [];
+  projectStageState: Project[] = [];
 
   // Define constructor
   constructor(public projectStage: ProjectStageStatus) {
@@ -437,10 +487,10 @@ class ProjectStage extends Component<HTMLDivElement, HTMLElement> {
       });
 
       /// Update the current stage the found project activities
-      this.activityTracker = stageProjectActivities;
+      this.projectStageState = stageProjectActivities;
 
       /// Show the project items to the UI
-      console.log(this.activityTracker);
+      this.renderActivity();
     });
 
     /// Confifure element
@@ -448,6 +498,17 @@ class ProjectStage extends Component<HTMLDivElement, HTMLElement> {
 
     /// Listen to events
     this.addEvents();
+  }
+
+  /**
+   * Show New Activity to UI
+   */
+  private renderActivity() {
+    this.htmlEl.lastElementChild!.innerHTML = '';
+
+    this.projectStageState.forEach(activity => {
+      new ProjectActivity(`project-${this.projectStage}-list`, activity);
+    });
   }
 
   // Listen to effects
@@ -458,6 +519,7 @@ class ProjectStage extends Component<HTMLDivElement, HTMLElement> {
     const statusTitle = this.projectStage.split('-').join(' ');
 
     this.htmlEl.firstElementChild!.firstElementChild!.innerHTML = statusTitle;
+    this.htmlEl.lastElementChild!.id = `project-${this.projectStage}-list`;
   }
 }
 
