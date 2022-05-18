@@ -414,6 +414,34 @@ class ProjectStage extends Component<HTMLDivElement, HTMLElement> {
     );
 
     /// Listent to state changes
+    projectStore.dispatchListener((store: Project[]) => {
+      // Filter Projects Activities for the current project stage
+      const stageProjectActivities = store.filter(projectActivity => {
+        // Filter Active Projects
+        if (this.projectStage === ProjectStageStatus.Active)
+          return projectActivity.projectStage === this.projectStage;
+
+        // Filter Finished Projects
+        if (this.projectStage === ProjectStageStatus.Finished)
+          return projectActivity.projectStage === this.projectStage;
+
+        // Filter Projects in progress
+        if (this.projectStage === ProjectStageStatus.InProgress)
+          return projectActivity.projectStage === this.projectStage;
+
+        // Filter Stalled projects activities
+        if (this.projectStage === ProjectStageStatus.Stalled)
+          return projectActivity.projectStage === this.projectStage;
+
+        return projectActivity;
+      });
+
+      /// Update the current stage the found project activities
+      this.activityTracker = stageProjectActivities;
+
+      /// Show the project items to the UI
+      console.log(this.activityTracker);
+    });
 
     /// Confifure element
     this.configureEl();
