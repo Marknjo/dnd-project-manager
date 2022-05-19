@@ -7,12 +7,12 @@ import { v4 as uuidV4 } from 'uuid';
 
 // @TARGETS: General App Overview
 // @DONE: #01. Add Project Form To the UI
-// @TODO: #02. Add Project Lists to the UI (Actvities && Finished)
-// @TODO: #03. Add A single Project to the screen
-// @TODO: #04. Enable Drag and Drop of the Activities from one project Status i.e. Activities to finished and Vice Versa
+// @DONE: #02. Add Project Lists to the UI (Actvities && Finished)
+// @DONE: #03. Add A single Project to the screen
+// @DONE: #04. Enable Drag and Drop of the Activities from one project Status i.e. Activities to finished and Vice Versa
 // @TODO: #05. Refactor code to organized Folders
-// @TODO: #06. Validate Project UI
-// @TODO: #07. Manage Project State
+// @DONE: #06. Validate Project UI
+// @DONE: #07. Manage Project State
 // @TODO: #08. Refactor Templating to Component - With State and Without State
 
 /// @TARGETS: Task #01. Add Project Form To the UI
@@ -138,7 +138,7 @@ const Autobind = (_: any, _1: string, descriptor: PropertyDescriptor) => {
 // @DONE: #05: The Class should update store (Read, Remove, Delete etc)
 // @DONE: #06: The class should use sigleton pattern to maintain data
 // @DONE: #07: Refactor Project Class for a universal reusable store
-// @TODO: #08: Define another class that defines the Project Fields (title, description, people, stage/status)
+// @DONE: #08: Define another class that defines the Project Fields (title, description, people, stage/status)
 
 /**
  * Define Project Structure
@@ -483,7 +483,7 @@ class ProjectActivity
    */
   @Autobind
   dragEndHandler(_1: DragEvent): void {
-    console.log('Element dragged');
+    // @TODO: Implement end state implementation
   }
 
   /**
@@ -643,8 +643,6 @@ class ProjectStage
       // remove the bg color
       this.toggleDropZonesBg(event, false);
     }
-
-    console.log();
   }
 
   // Listen to effects
