@@ -102,6 +102,14 @@ interface Droppable {
 }
 
 /** ------------------------------------------------- */
+//                    NORMAL TYPES                    //
+/** ------------------------------------------------- */
+/**
+ * Define Project Listener Function
+ */
+type Listener = (store: Project[]) => void;
+
+/** ------------------------------------------------- */
 //                DECORATORS SECTION                  //
 /** ------------------------------------------------- */
 
@@ -141,6 +149,55 @@ const Autobind = (_: any, _1: string, descriptor: PropertyDescriptor) => {
 // @DONE: #08: Define another class that defines the Project Fields (title, description, people, stage/status)
 
 /**
+ * Base State management class (abstract)
+ **/
+abstract class Store<P extends object, L extends Function> {
+  /**
+   * Tracts Submitted project items
+   */
+  store: P[] = [];
+
+  /**
+   * Tracks Submitted action creators
+   */
+  listeners: L[] = [];
+
+  // Get Store content
+  get getStore() {
+    return this.store;
+  }
+
+  constructor() {}
+
+  /**
+   *
+   * @param listenerFn A function that triggers and action
+   */
+  addListener(listenerFn: L) {
+    this.listeners.push(listenerFn);
+  }
+
+  /**
+   * Add Payload to the Project
+   */
+  addPayload(payload: P) {
+    this.store.push(payload);
+
+    // Update listeners that the store has been updated
+    this.updateListeners();
+  }
+
+  /**
+   * Project Listener
+   */
+  protected updateListeners() {
+    this.listeners.forEach(listenerFn => {
+      return listenerFn(this.store.slice());
+    });
+  }
+}
+
+/**
  * Define Project Structure
  */
 class Project {
@@ -153,22 +210,7 @@ class Project {
   ) {}
 }
 
-/**
- * Define Project Listener Function
- */
-type Listener = (store: Project[]) => void;
-
-class ProjectStore {
-  /**
-   * Tracts Submitted project items
-   */
-  store: Project[] = [];
-
-  /**
-   * Tracks Submitted action creators
-   */
-  listeners: Listener[] = [];
-
+class ProjectStore extends Store<Project, Listener> {
   /**
    * Project Store Instance handle
    */
@@ -185,22 +227,9 @@ class ProjectStore {
     return this.instance;
   }
 
-  // Get Store content
-  get getStore() {
-    return this.store;
-  }
-
   // Constructor
-  private constructor() {}
-
-  /// Define methods
-
-  /**
-   *
-   * @param listenerFn A function that triggers and action
-   */
-  addListener(listenerFn: Listener) {
-    this.listeners.push(listenerFn);
+  private constructor() {
+    super();
   }
 
   /**
@@ -238,15 +267,6 @@ class ProjectStore {
 
       this.updateListeners();
     }
-  }
-
-  /**
-   * Project Listener
-   */
-  protected updateListeners() {
-    this.listeners.forEach(listenerFn => {
-      return listenerFn(this.store.slice());
-    });
   }
 }
 
