@@ -38,8 +38,8 @@ textarea:focus {
 
 button {
   font: inherit;
-  background: #ff0062;
-  border: 1px solid #ff0062;
+  background: #3f424d;
+  border: 1px solid #3f424d;
   cursor: pointer;
   color: white;
   padding: 0.75rem 1rem;
@@ -57,11 +57,11 @@ button:active {
 
 .projects {
   margin: 1rem;
-  border: 1px solid #ff0062;
+  border: 1px solid #3f424d;
 }
 
 .projects header {
-  background: #ff0062;
+  background: #3f424d;
   height: 3.5rem;
   display: flex;
   justify-content: center;
@@ -77,11 +77,11 @@ button:active {
 }
 
 #projects-stalled {
-  border-color: #3f424d;
+  border-color: #ff0062;
 }
 
 #projects-stalled header {
-  background: #3f424d;
+  background: #ff0062;
 }
 
 #projects-in-progress {
@@ -111,7 +111,7 @@ button:active {
 }
 
 .projects li h2 {
-  color: #ff0062;
+  color: #3f424d;
   margin: 0.5rem 0;
 }
 
@@ -123,12 +123,13 @@ button:active {
   color: #0044ff;
 }
 
-#projects-finished li h2 {
-  color: #3f424d;
-}
 
 #projects-in-progress li h2 {
   color: #00ff0d;
+}
+
+#projects-stalled li h2 {
+  color: #ff0062;
 }
 
 .projects li h3 {
@@ -141,16 +142,27 @@ button:active {
 }
 
 .droppable {
-  background: #ffe3ee;
+  background: #e3e9ff;;
 }
 
 #projects-finished .droppable {
   background: #d6e1ff;
 }
 
+
+#projects-in-progress .droppable {
+  background: #e8ffe8;
+}
+
+#projects-stalled .droppable {
+  background: #ffe3ee;
+}
+
+
+
 #activity-form {
   margin: 1rem;
   padding: 1rem;
-  border: 1px solid #ff0062;
+  border: 1px solid #3f424d;
   background: #f7f7f7;
 }

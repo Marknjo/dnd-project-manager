@@ -7,9 +7,9 @@ import { v4 as uuidV4 } from 'uuid';
 
 // @TARGETS: General App Overview
 // @DONE: #01. Add Project Form To the UI
-// @TODO: #02. Add Project Lists to the UI (Active && Finished)
+// @TODO: #02. Add Project Lists to the UI (Actvities && Finished)
 // @TODO: #03. Add A single Project to the screen
-// @TODO: #04. Enable Drag and Drop of the Activities from one project Status i.e. active to finished and Vice Versa
+// @TODO: #04. Enable Drag and Drop of the Activities from one project Status i.e. Activities to finished and Vice Versa
 // @TODO: #05. Refactor code to organized Folders
 // @TODO: #06. Validate Project UI
 // @TODO: #07. Manage Project State
@@ -41,7 +41,7 @@ enum InsertPosition {
  * Defines Different project stages status
  */
 enum ProjectStageStatus {
-  Active = 'active',
+  Activities = 'activities',
   InProgress = 'in-progress',
   Finished = 'finished',
   Stalled = 'stalled',
@@ -84,6 +84,23 @@ interface ProjectPayload {
   noOfPeople: number;
 }
 
+/**
+ * Contracts for the component which is can be dragged
+ */
+interface Draggable {
+  dragStartHandler(event: DragEvent): void;
+  dragEndHandler(event: DragEvent): void;
+}
+
+/**
+ * Contracts for the components which receives a dragged Item
+ */
+interface Droppable {
+  dragOverHandler(event: DragEvent): void;
+  dragLeaveHandler(event: DragEvent): void;
+  dropHandler(event: DragEvent): void;
+}
+
 /** ------------------------------------------------- */
 //                DECORATORS SECTION                  //
 /** ------------------------------------------------- */
@@ -114,13 +131,13 @@ const Autobind = (_: any, _1: string, descriptor: PropertyDescriptor) => {
 /** ------------------------------------------------- */
 
 // @TARGETS: Implement Project Store
-// @TODO: #01: Create a class that defines project store
-// @TODO: #02: The class should have listeners container
-// @TODO: #03: The class should implement store for tracking submitted form data
-// @TODO: #04: The class should be able to add actions creators to the lister container
-// @TODO: #05: The Class should update store (Read, Remove, Delete etc)
-// @TODO: #06: The class should use sigleton pattern to maintain data
-// @TODO: #07: Refactor Project Class for a universal reusable store
+// @DONE: #01: Create a class that defines project store
+// @DONE: #02: The class should have listeners container
+// @DONE: #03: The class should implement store for tracking submitted form data
+// @DONE: #04: The class should be able to add actions creators to the lister container
+// @DONE: #05: The Class should update store (Read, Remove, Delete etc)
+// @DONE: #06: The class should use sigleton pattern to maintain data
+// @DONE: #07: Refactor Project Class for a universal reusable store
 // @TODO: #08: Define another class that defines the Project Fields (title, description, people, stage/status)
 
 /**
@@ -139,7 +156,7 @@ class Project {
 /**
  * Define Project Listener Function
  */
-type Listener = (payload: Project[]) => void;
+type Listener = (store: Project[]) => void;
 
 class ProjectStore {
   /**
@@ -182,14 +199,14 @@ class ProjectStore {
    *
    * @param listenerFn A function that triggers and action
    */
-  dispatchListener(listenerFn: Listener) {
+  addListener(listenerFn: Listener) {
     this.listeners.push(listenerFn);
   }
 
   /**
    * Add Payload to the Project
    */
-  dispatchPayload(payload: ProjectPayload) {
+  addPayload(payload: ProjectPayload) {
     // Push the content to the store
     const { title, description, noOfPeople } = payload;
 
@@ -198,13 +215,29 @@ class ProjectStore {
       title,
       description,
       noOfPeople,
-      ProjectStageStatus.Active
+      ProjectStageStatus.Activities
     );
 
     this.store.push(newProjectActivity);
 
     // Update listeners that the store has been updated
     this.updateListeners();
+  }
+
+  /**
+   * Swap project activity postion
+   */
+  updateProjectStage(activityId: string, newStage: ProjectStageStatus) {
+    const foundActivity = this.store.find(
+      activity => activity.id === activityId
+    );
+
+    // Update project stage
+    if (foundActivity && foundActivity.projectStage !== newStage) {
+      foundActivity.projectStage = newStage;
+
+      this.updateListeners();
+    }
   }
 
   /**
@@ -217,7 +250,7 @@ class ProjectStore {
   }
 }
 
-const projectStore = ProjectStore.getInstance();
+const projectState = ProjectStore.getInstance();
 
 /** ------------------------------------------------- */
 //               VALIDATIONS SECTION                  //
@@ -369,8 +402,6 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 
     this.rootEl = document.getElementById(rootElId)! as T;
 
-    console.log({ rootElId });
-
     // Get the form component form the template elementt
     const componentTemplate = document.importNode(
       this.templateEl.content,
@@ -400,7 +431,10 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 /**
  * Project Activity Component
  */
-class ProjectActivity extends Component<HTMLDivElement, HTMLUListElement> {
+class ProjectActivity
+  extends Component<HTMLDivElement, HTMLUListElement>
+  implements Draggable
+{
   /**
    *
    */
@@ -414,7 +448,7 @@ class ProjectActivity extends Component<HTMLDivElement, HTMLUListElement> {
 
   /**
    *
-   * @param rootId Id of the stage this component is called i.e. active, in-progress etc
+   * @param rootId Id of the stage this component is called i.e. activities, in-progress etc
    * @param activityState Activity items id, title, description, no of people etc;
    */
   constructor(rootId: string, private activityState: Project) {
@@ -427,9 +461,38 @@ class ProjectActivity extends Component<HTMLDivElement, HTMLUListElement> {
 
     // Get the project stage ID
     this.configureEl();
+
+    // Handle events
+    this.addEvents();
   }
 
-  addEvents(): void {}
+  /**
+   * Drag Start Handler
+   */
+  @Autobind
+  dragStartHandler(event: DragEvent): void {
+    // Add the id of the element to the drag event
+    event.dataTransfer!.setData('text/plain', this.activityState.id);
+
+    // Add the move effect to the element
+    event.dataTransfer!.effectAllowed = 'move';
+  }
+
+  /**
+   * Drag End handler
+   */
+  @Autobind
+  dragEndHandler(_1: DragEvent): void {
+    console.log('Element dragged');
+  }
+
+  /**
+   * Add events to the element
+   */
+  addEvents(): void {
+    this.htmlEl.addEventListener('dragstart', this.dragStartHandler);
+    this.htmlEl.addEventListener('dragend', this.dragEndHandler);
+  }
 
   /**
    * Configure the html element
@@ -448,11 +511,19 @@ class ProjectActivity extends Component<HTMLDivElement, HTMLUListElement> {
 /**
  * Implements Adding Different Project Stages In the UI
  */
-class ProjectStage extends Component<HTMLDivElement, HTMLElement> {
+class ProjectStage
+  extends Component<HTMLDivElement, HTMLElement>
+  implements Droppable
+{
   /**
    * Tracks this Project stage activities
    */
   projectStageState: Project[] = [];
+
+  /**
+   * Droping area Project stage holder
+   */
+  droppingZoneStage: ProjectStageStatus = ProjectStageStatus.Activities;
 
   // Define constructor
   constructor(public projectStage: ProjectStageStatus) {
@@ -464,11 +535,11 @@ class ProjectStage extends Component<HTMLDivElement, HTMLElement> {
     );
 
     /// Listent to state changes
-    projectStore.dispatchListener((store: Project[]) => {
+    projectState.addListener((store: Project[]) => {
       // Filter Projects Activities for the current project stage
       const stageProjectActivities = store.filter(projectActivity => {
-        // Filter Active Projects
-        if (this.projectStage === ProjectStageStatus.Active)
+        // Filter Activities Projects
+        if (this.projectStage === ProjectStageStatus.Activities)
           return projectActivity.projectStage === this.projectStage;
 
         // Filter Finished Projects
@@ -511,12 +582,82 @@ class ProjectStage extends Component<HTMLDivElement, HTMLElement> {
     });
   }
 
+  /// DRAG EVENTS -> DROP AREA
+
+  /**
+   * Helper method that allows adding and removing of the project stage background
+   * @param event Drag event holding the target element
+   * @param add true to add a droppable bg class or false to remove it from the element
+   */
+  private toggleDropZonesBg(event: DragEvent, add: boolean) {
+    const target = event.target as HTMLUListElement;
+    const targetId = target.getAttribute('id');
+
+    if (targetId!.includes('-list')) {
+      if (add) {
+        target.parentElement!.lastElementChild!.classList.add('droppable');
+      } else {
+        target.parentElement!.lastElementChild!.classList.remove('droppable');
+      }
+    }
+  }
+
+  /**
+   * Enable Drapping of the item using drag over event
+   */
+  @Autobind
+  dragOverHandler(event: DragEvent): void {
+    // Allow dropping of items
+    event.preventDefault();
+
+    this.toggleDropZonesBg(event, true);
+  }
+
+  /**
+   * Add styles using drag leave
+   */
+  @Autobind
+  dragLeaveHandler(event: DragEvent): void {
+    event.preventDefault();
+    this.toggleDropZonesBg(event, false);
+  }
+
+  /**
+   * Update the store by changing the status of the dragged activity
+   */
+  @Autobind
+  dropHandler(event: DragEvent): void {
+    event.preventDefault();
+    const target = event.target as HTMLUListElement;
+    const targetId = target.getAttribute('id');
+
+    if (targetId!.includes('-list')) {
+      const droppingZoneStage = target.parentElement!.dataset
+        .projectStage as ProjectStageStatus;
+
+      const activityId = event.dataTransfer!.getData('text/plain');
+
+      // move the activity to the new target
+      projectState.updateProjectStage(activityId, droppingZoneStage);
+
+      // remove the bg color
+      this.toggleDropZonesBg(event, false);
+    }
+
+    console.log();
+  }
+
   // Listen to effects
-  addEvents(): void {}
+  addEvents(): void {
+    this.htmlEl.addEventListener('dragover', this.dragOverHandler);
+    this.htmlEl.addEventListener('dragleave', this.dragLeaveHandler);
+    this.htmlEl.addEventListener('drop', this.dropHandler);
+  }
 
   // Configure Component
   configureEl(): void {
     const statusTitle = this.projectStage.split('-').join(' ');
+    this.htmlEl.dataset.projectStage = this.projectStage;
 
     this.htmlEl.firstElementChild!.firstElementChild!.innerHTML = statusTitle;
     this.htmlEl.lastElementChild!.id = `project-${this.projectStage}-list`;
@@ -686,7 +827,7 @@ class ActivityForm extends Component<HTMLDivElement, HTMLFormElement> {
       const [title, description, people] = validations;
 
       // Submit to store
-      projectStore.dispatchPayload({
+      projectState.addPayload({
         title: `${title}`,
         description: `${description}`,
         noOfPeople: +people,
@@ -709,4 +850,4 @@ new ActivityForm();
 new ProjectStage(ProjectStageStatus.Stalled);
 new ProjectStage(ProjectStageStatus.Finished);
 new ProjectStage(ProjectStageStatus.InProgress);
-new ProjectStage(ProjectStageStatus.Active);
+new ProjectStage(ProjectStageStatus.Activities);
