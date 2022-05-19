@@ -91,7 +91,7 @@ class ProjectStages
     const target = event.target as HTMLUListElement;
     const targetId = target.getAttribute('id');
 
-    if (targetId!.includes('-list')) {
+    if (targetId?.includes('-list')) {
       if (add) {
         target.parentElement!.lastElementChild!.classList.add('droppable');
       } else {
