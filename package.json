@@ -18,11 +18,11 @@
   "author": "Mark Njoroge",
   "license": "ISC",
   "devDependencies": {
-    "@types/uuid": "^8.3.4",
-    "typescript": "^4.6.4",
-    "vite": "^2.9.9"
+    "@types/uuid": "^9.0.1",
+    "typescript": "^5.0.2",
+    "vite": "^4.2.1"
   },
   "dependencies": {
-    "uuid": "^8.3.2"
+    "uuid": "^9.0.0"
   }
 }
